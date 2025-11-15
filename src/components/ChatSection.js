@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Sparkles, Activity, X, MessageCircle } from 'lucide-react';
+import { Send, Bot, User, X, MessageCircle } from 'lucide-react';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
@@ -100,233 +100,122 @@ export default function ChatSection({ diseaseInfo }) {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-8 right-8 z-50 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 text-white p-5 rounded-full shadow-2xl hover:scale-110 transition-transform duration-300 group"
-          style={{
-            boxShadow: '0 0 30px rgba(16, 185, 129, 0.5), 0 0 60px rgba(20, 184, 166, 0.3)'
-          }}
+          className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-emerald-500 to-teal-600 text-white p-5 rounded-full shadow-xl hover:shadow-2xl hover:scale-110 transition-all duration-300"
         >
-          <MessageCircle size={28} className="group-hover:rotate-12 transition-transform" />
-          {diseaseInfo && (
-            <span className="absolute -top-1 -right-1 flex h-5 w-5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-5 w-5 bg-emerald-500"></span>
-            </span>
+          <MessageCircle size={32} />
+          
+          {/* Notification Badge */}
+          {messages.length === 0 && (
+            <div className="absolute -top-1 -right-1 bg-rose-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+              1
+            </div>
           )}
         </button>
       )}
 
-      {/* Chat Panel */}
+      {/* Chat Window */}
       {isOpen && (
-        <div className="fixed inset-y-0 right-0 w-full md:w-[480px] z-50 flex flex-col bg-gradient-to-br from-slate-900 via-emerald-900 to-slate-900 backdrop-blur-xl shadow-2xl border-l border-emerald-500/20 animate-slide-in">
-          {/* Animated Background */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute top-0 -right-20 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl animate-pulse"></div>
-            <div className="absolute bottom-0 -left-20 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-          </div>
-
+        <div className="fixed bottom-6 right-6 z-50 w-96 h-[600px] bg-white rounded-2xl shadow-2xl flex flex-col border border-slate-200">
           {/* Header */}
-          <div className="relative p-6 bg-gradient-to-r from-emerald-600/20 via-teal-600/20 to-emerald-600/20 backdrop-blur-md border-b border-emerald-500/30">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full blur-md opacity-75 animate-pulse"></div>
-                  <div className="relative bg-gradient-to-r from-emerald-500 to-teal-500 p-3 rounded-full">
-                    <Bot className="text-white" size={24} />
-                  </div>
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                    AI Health Assistant
-                    <Sparkles size={16} className="text-emerald-400 animate-pulse" />
-                  </h2>
-                  <p className="text-xs text-emerald-300 flex items-center gap-1">
-                    <Activity size={12} className="animate-pulse" />
-                    Powered by Web3 Health Tech
-                  </p>
+          <div className="bg-gradient-to-r from-emerald-500 to-teal-600 p-4 rounded-t-2xl flex items-center justify-between text-white">
+            <div className="flex items-center gap-3">
+              <div className="bg-white/20 p-2 rounded-lg">
+                <Bot size={24} />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg">Konsultasi Skincare</h3>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  <span className="text-sm">Online</span>
                 </div>
               </div>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="p-2 hover:bg-white/10 rounded-full transition-colors"
-              >
-                <X className="text-white" size={24} />
-              </button>
             </div>
-
-            {/* Disease Info Card */}
-            {diseaseInfo && (
-              <div className="mt-4 p-4 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 rounded-xl backdrop-blur-sm">
-                <div className="flex items-center gap-2 mb-2">
-                  <Activity className="text-emerald-400" size={16} />
-                  <span className="text-sm font-semibold text-white">Kondisi Terdeteksi</span>
-                </div>
-                <p className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
-                  {diseaseInfo.disease}
-                </p>
-                <div className="mt-2 flex items-center gap-2">
-                  <div className="flex-1 h-2 bg-slate-700/50 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full transition-all duration-1000"
-                      style={{ width: `${(diseaseInfo.confidence * 100)}%` }}
-                    ></div>
-                  </div>
-                  <span className="text-emerald-400 font-bold text-sm">
-                    {(diseaseInfo.confidence * 100).toFixed(1)}%
-                  </span>
-                </div>
-              </div>
-            )}
+            <button 
+              onClick={() => setIsOpen(false)}
+              className="hover:bg-white/20 p-2 rounded-lg transition-colors"
+            >
+              <X size={20} />
+            </button>
           </div>
 
           {/* Messages Area */}
-          <div className="relative flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-emerald-500/50 scrollbar-track-transparent">
-            {messages.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="relative inline-block mb-4">
-                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full blur-xl opacity-50 animate-pulse"></div>
-                  <Bot className="relative text-emerald-400" size={64} />
+          <div className="flex-1 overflow-y-auto p-4 bg-slate-50">
+            {messages.length === 0 && (
+              <div className="flex flex-col items-center justify-center h-full text-center">
+                <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-4 rounded-full mb-4">
+                  <Bot className="text-white" size={32} />
                 </div>
-                <p className="text-gray-300 text-lg mb-2">Mulai Konsultasi Kesehatan</p>
-                <p className="text-gray-500 text-sm">Tanyakan apa saja tentang kondisi kulit Anda</p>
-                {!diseaseInfo && (
-                  <div className="mt-4 p-3 bg-orange-500/20 border border-orange-500/30 rounded-lg backdrop-blur-sm inline-block">
-                    <p className="text-orange-300 text-sm">
-                      📷 Deteksi gambar terlebih dahulu
-                    </p>
-                  </div>
-                )}
+                <h4 className="text-lg font-bold text-slate-900 mb-2">Halo! Ada yang bisa saya bantu?</h4>
+                <p className="text-sm text-slate-600 font-medium">Tanyakan tentang perawatan kulit Anda</p>
               </div>
-            ) : (
-              messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.isBot ? 'justify-start' : 'justify-end'} animate-fade-in`}
-                >
-                  <div
-                    className={`max-w-[85%] rounded-2xl p-4 ${
-                      message.isBot
-                        ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 backdrop-blur-md'
-                        : 'bg-gradient-to-r from-emerald-600 to-teal-600 shadow-lg shadow-emerald-500/50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      {message.isBot ? (
-                        <Bot size={16} className="text-emerald-400" />
-                      ) : (
-                        <User size={16} className="text-white" />
+            )}
+
+            {messages.map((msg) => (
+              <div key={msg.id} className={`mb-4 flex ${msg.isBot ? 'justify-start' : 'justify-end'}`}>
+                <div className={`flex gap-2 max-w-[80%] ${msg.isBot ? 'flex-row' : 'flex-row-reverse'}`}>
+                  {/* Avatar */}
+                  <div className={`${msg.isBot ? 'bg-gradient-to-br from-emerald-500 to-teal-600' : 'bg-gradient-to-br from-slate-600 to-slate-700'} p-2 rounded-full h-fit shadow-md`}>
+                    {msg.isBot ? <Bot className="text-white" size={20} /> : <User className="text-white" size={20} />}
+                  </div>
+                  
+                  {/* Message Bubble */}
+                  <div className={`${msg.isBot ? 'bg-white border border-slate-200' : 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white'} p-3 rounded-2xl shadow-md`}>
+                    <p className={`text-sm ${msg.isBot ? 'text-slate-900' : 'text-white'} font-medium whitespace-pre-wrap`}>
+                      {msg.text.split('**').map((part, i) => 
+                        i % 2 === 0 ? part : <strong key={i} className="font-black">{part}</strong>
                       )}
-                      <span className={`text-xs font-semibold ${message.isBot ? 'text-emerald-300' : 'text-white'}`}>
-                        {message.isBot ? 'AI Assistant' : 'You'}
-                      </span>
-                    </div>
-                    <p className={`whitespace-pre-wrap ${message.isBot ? 'text-gray-200' : 'text-white'}`}>
-                      {message.text}
                     </p>
-                    <div className={`text-xs mt-2 ${message.isBot ? 'text-emerald-400/70' : 'text-white/70'}`}>
-                      {message.timestamp.toLocaleTimeString('id-ID', {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </div>
+                    <p className={`text-xs ${msg.isBot ? 'text-slate-500' : 'text-white/80'} mt-1`}>
+                      {msg.timestamp.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                    </p>
                   </div>
                 </div>
-              ))
-            )}
+              </div>
+            ))}
+
             {loading && (
-              <div className="flex justify-start animate-fade-in">
-                <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 rounded-2xl p-4 backdrop-blur-md">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Bot size={16} className="text-emerald-400" />
-                    <span className="text-xs font-semibold text-emerald-300">AI Assistant</span>
+              <div className="flex justify-start mb-4">
+                <div className="flex gap-2 max-w-[80%]">
+                  <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-2 rounded-full h-fit shadow-md">
+                    <Bot className="text-white" size={20} />
                   </div>
-                  <div className="flex space-x-2">
-                    <div className="w-2 h-2 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                    <div className="w-2 h-2 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                  <div className="bg-white border border-slate-200 p-3 rounded-2xl shadow-md">
+                    <div className="flex gap-1">
+                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    </div>
                   </div>
                 </div>
               </div>
             )}
+
             <div ref={messagesEndRef} />
           </div>
 
           {/* Input Area */}
-          <div className="relative p-6 bg-gradient-to-r from-slate-800/80 via-emerald-900/80 to-slate-800/80 backdrop-blur-md border-t border-emerald-500/30">
-            <div className="flex gap-3">
-              <textarea
+          <div className="p-4 bg-white border-t border-slate-200 rounded-b-2xl">
+            <div className="flex gap-2">
+              <input
+                type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Ketik pertanyaan Anda..."
-                className="flex-1 bg-slate-800/50 border border-emerald-500/30 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none backdrop-blur-sm transition-all"
-                rows="2"
-                disabled={loading || !diseaseInfo}
+                placeholder="Ketik pesan..."
+                className="flex-1 px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 text-slate-900 font-medium"
+                disabled={loading}
               />
               <button
                 onClick={handleSendMessage}
-                disabled={loading || !inputMessage.trim() || !diseaseInfo}
-                className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-emerald-600 hover:to-teal-600 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed transition-all self-end shadow-lg hover:shadow-emerald-500/50 hover:scale-105"
+                disabled={!inputMessage.trim() || loading}
+                className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white p-3 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
               >
                 <Send size={20} />
               </button>
             </div>
-            {!diseaseInfo && (
-              <p className="text-sm text-gray-400 mt-2 text-center">
-                📷 Deteksi gambar terlebih dahulu untuk memulai
-              </p>
-            )}
           </div>
         </div>
       )}
-
-      <style jsx>{`
-        @keyframes slide-in {
-          from {
-            transform: translateX(100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
-
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .animate-slide-in {
-          animation: slide-in 0.3s ease-out;
-        }
-
-        .animate-fade-in {
-          animation: fade-in 0.3s ease-out;
-        }
-
-        .scrollbar-thin::-webkit-scrollbar {
-          width: 6px;
-        }
-
-        .scrollbar-thin::-webkit-scrollbar-track {
-          background: transparent;
-        }
-
-        .scrollbar-thin::-webkit-scrollbar-thumb {
-          background: rgba(16, 185, 129, 0.5);
-          border-radius: 3px;
-        }
-
-        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-          background: rgba(16, 185, 129, 0.7);
-        }
-      `}</style>
     </>
   );
 }
