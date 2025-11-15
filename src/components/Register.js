@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UserPlus, Mail, Lock, User, AlertCircle } from 'lucide-react';
+import { UserPlus, Mail, Lock, User, AlertCircle, ArrowLeft } from 'lucide-react';
 import bgImage from '../assets/bg.png';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
@@ -58,6 +58,16 @@ export default function Register({ onNavigate }) {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative">
+      {/* Loading Overlay */}
+      {loading && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-white rounded-2xl p-8 shadow-2xl flex flex-col items-center gap-4">
+            <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-slate-700 font-bold text-lg">Mendaftarkan akun...</p>
+          </div>
+        </div>
+      )}
+      
       {/* Background Image */}
       <div className="fixed inset-0 opacity-60 pointer-events-none" style={{
         backgroundImage: `url(${bgImage})`,
@@ -67,7 +77,16 @@ export default function Register({ onNavigate }) {
       }}></div>
       <div className="fixed inset-0 bg-gradient-to-br from-white/80 via-emerald-50/70 to-teal-50/70 pointer-events-none"></div>
       
-      <div className="w-full max-w-md">
+      {/* Back Button */}
+      <button
+        onClick={() => onNavigate('home')}
+        disabled={loading}
+        className="absolute top-6 left-6 group flex items-center justify-center w-12 h-12 bg-white/95 backdrop-blur-xl hover:bg-gradient-to-r hover:from-emerald-500 hover:to-teal-600 text-slate-700 hover:text-white rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 z-20 border-2 border-slate-200 hover:border-transparent hover:scale-110 hover:rotate-[-15deg] disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <ArrowLeft size={22} className="group-hover:translate-x-[-2px] transition-transform" strokeWidth={2.5} />
+      </button>
+      
+      <div className="w-full max-w-md relative z-10">
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-block bg-gradient-to-br from-emerald-500 to-teal-600 p-4 rounded-2xl shadow-xl mb-4">

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { LogIn, Mail, Lock, AlertCircle } from 'lucide-react';
+import { LogIn, Mail, Lock, AlertCircle, ArrowLeft } from 'lucide-react';
 import bgImage from '../assets/bg.png';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 export default function Login({ onLogin, onNavigate }) {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -17,7 +17,7 @@ export default function Login({ onLogin, onNavigate }) {
 
     try {
       const formData = new URLSearchParams();
-      formData.append('username', email);
+      formData.append('username', username);
       formData.append('password', password);
 
       const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
@@ -46,6 +46,16 @@ export default function Login({ onLogin, onNavigate }) {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative">
+      {/* Loading Overlay */}
+      {loading && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-white rounded-2xl p-8 shadow-2xl flex flex-col items-center gap-4">
+            <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-slate-700 font-bold text-lg">Sedang masuk...</p>
+          </div>
+        </div>
+      )}
+      
       {/* Background Image */}
       <div className="fixed inset-0 opacity-60 pointer-events-none" style={{
         backgroundImage: `url(${bgImage})`,
@@ -55,7 +65,16 @@ export default function Login({ onLogin, onNavigate }) {
       }}></div>
       <div className="fixed inset-0 bg-gradient-to-br from-white/80 via-emerald-50/70 to-teal-50/70 pointer-events-none"></div>
       
-      <div className="w-full max-w-md">
+      {/* Back Button */}
+      <button
+        onClick={() => onNavigate('home')}
+        disabled={loading}
+        className="absolute top-6 left-6 group flex items-center justify-center w-12 h-12 bg-white/95 backdrop-blur-xl hover:bg-gradient-to-r hover:from-emerald-500 hover:to-teal-600 text-slate-700 hover:text-white rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 z-20 border-2 border-slate-200 hover:border-transparent hover:scale-110 hover:rotate-[-15deg] disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <ArrowLeft size={22} className="group-hover:translate-x-[-2px] transition-transform" strokeWidth={2.5} />
+      </button>
+      
+      <div className="w-full max-w-md relative z-10">
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-block bg-gradient-to-br from-emerald-500 to-teal-600 p-4 rounded-2xl shadow-xl mb-4">
@@ -78,15 +97,15 @@ export default function Login({ onLogin, onNavigate }) {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-bold text-slate-900 mb-2">Email</label>
+              <label className="block text-sm font-bold text-slate-900 mb-2">Username atau Email</label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
                 <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 text-slate-900 font-medium"
-                  placeholder="nama@example.com"
+                  placeholder="admin atau nama@example.com"
                   required
                 />
               </div>

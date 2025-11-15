@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShoppingBag, LogOut, User } from 'lucide-react';
+import { ShoppingBag, LogOut, User, Shield } from 'lucide-react';
 
 export default function Header({ onNavigate, currentPage, cartItemsCount, user, onLogout }) {
   return (
@@ -51,6 +51,21 @@ export default function Header({ onNavigate, currentPage, cartItemsCount, user, 
                 </span>
               )}
             </button>
+
+            {/* Admin Button - Only show for admin users */}
+            {user?.role === 'admin' && (
+              <button 
+                onClick={() => onNavigate('admin')}
+                className={`px-5 py-2.5 rounded-xl font-bold transition-all flex items-center gap-2 ${
+                  currentPage === 'admin' 
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg' 
+                    : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                }`}
+              >
+                <Shield size={18} />
+                Admin
+              </button>
+            )}
           </nav>
 
           {/* User Section */}

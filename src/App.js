@@ -5,6 +5,7 @@ import Header from './components/Header';
 import Login from './components/Login';
 import Register from './components/Register';
 import Products from './components/Products';
+import AdminDashboard from './components/AdminDashboard';
 import bgImage from './assets/bg.png';
 
 function App() {
@@ -52,6 +53,15 @@ function App() {
 
   if (currentView === 'register') {
     return <Register onNavigate={setCurrentView} />;
+  }
+
+  if (currentView === 'admin') {
+    // Check if user is admin
+    if (user?.role !== 'admin') {
+      setCurrentView('home');
+      return null;
+    }
+    return <AdminDashboard user={user} onNavigate={setCurrentView} />;
   }
 
   if (currentView === 'products') {
