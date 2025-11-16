@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, X, MessageCircle } from 'lucide-react';
+import { Send, Bot, User, X, MessageCircle, ShoppingCart, ExternalLink } from 'lucide-react';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
@@ -69,7 +69,8 @@ export default function ChatSection({ diseaseInfo }) {
         id: Date.now() + 1,
         text: data.response || data.message || 'Maaf, tidak ada respons dari AI.',
         isBot: true,
-        timestamp: new Date()
+        timestamp: new Date(),
+        products: data.products || []  // Store recommended products
       };
 
       setMessages(prev => [...prev, botMessage]);
@@ -165,6 +166,54 @@ export default function ChatSection({ diseaseInfo }) {
                         i % 2 === 0 ? part : <strong key={i} className="font-black">{part}</strong>
                       )}
                     </p>
+                    
+                    {/* Product Recommendations */}
+                    {msg.isBot && msg.products && msg.products.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-slate-200">
+                        <p className="text-xs font-bold text-emerald-600 mb-2 flex items-center gap-1">
+                          <ShoppingCart size={14} />
+                          Produk yang Direkomendasikan:
+                        </p>
+                        <div className="space-y-2">
+                          {msg.products.map((product, idx) => (
+                            <div 
+                              key={product.id || idx} 
+                              className="bg-gradient-to-br from-emerald-50 to-teal-50 p-3 rounded-xl border border-emerald-200 hover:shadow-md transition-all cursor-pointer"
+                              onClick={() => {
+                                // Scroll to products section or add to cart
+                                window.location.href = '/products';
+                              }}
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="flex-1">
+                                  <p className="font-bold text-slate-900 text-sm mb-1">{product.name}</p>
+                                  <p className="text-emerald-600 font-black text-sm mb-1">
+                                    Rp {(product.price || 0).toLocaleString('id-ID')}
+                                  </p>
+                                  <p className="text-xs text-slate-600 line-clamp-2">
+                                    {product.description?.substring(0, 80)}...
+                                  </p>
+                                  {product.for_conditions && product.for_conditions.length > 0 && (
+                                    <div className="flex flex-wrap gap-1 mt-2">
+                                      {product.for_conditions.slice(0, 2).map((condition, i) => (
+                                        <span 
+                                          key={i} 
+                                          className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium"
+                                        >
+                                          {condition}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                                <ExternalLink size={16} className="text-emerald-600 flex-shrink-0 mt-1" />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
                     <p className={`text-xs ${msg.isBot ? 'text-slate-500' : 'text-white/80'} mt-1`}>
                       {msg.timestamp.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
                     </p>
