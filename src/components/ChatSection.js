@@ -7,7 +7,15 @@ export default function ChatSection({ diseaseInfo }) {
   const [messages, setMessages] = useState(() => {
     // Restore messages from sessionStorage
     const saved = sessionStorage.getItem('chatMessages');
-    return saved ? JSON.parse(saved) : [];
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Convert timestamp strings back to Date objects
+      return parsed.map(msg => ({
+        ...msg,
+        timestamp: new Date(msg.timestamp)
+      }));
+    }
+    return [];
   });
   const [inputMessage, setInputMessage] = useState('');
   const [loading, setLoading] = useState(false);
