@@ -1,30 +1,87 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, X, MessageCircle, ShoppingCart, ExternalLink } from 'lucide-react';
+import { Send, Bot, User, X, MessageCircle, ShoppingCart, ExternalLink, Menu } from 'lucide-react';
+import ChatSidebar from './ChatSidebar';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 export default function ChatSection({ diseaseInfo }) {
-  const [messages, setMessages] = useState(() => {
-    // Restore messages from sessionStorage
-    const saved = sessionStorage.getItem('chatMessages');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      // Convert timestamp strings back to Date objects
-      return parsed.map(msg => ({
-        ...msg,
-        timestamp: new Date(msg.timestamp)
-      }));
-    }
-    return [];
+  const [currentChatId, setCurrentChatId] = useState(() => {
+    return localStorage.getItem('currentChatId') || `chat_${Date.now()}`;
   });
+  const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const [isOpen, setIsOpen] = useState(() => {
-    // Restore open state
-    const saved = sessionStorage.getItem('chatOpen');
-    return saved ? JSON.parse(saved) : false;
-  });
+  const [isOpen, setIsOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const messagesEndRef = useRef(null);
+
+  // Load current chat session
+  useEffect(() => {
+    const loadChat = () => {
+      const saved = localStorage.getItem(`chat_session_${currentChatId}`);
+      if (saved) {
+        try {
+          const data = JSON.parse(saved);
+          setMessages(data.messages.map(msg => ({
+            ...msg,
+            timestamp: new Date(msg.timestamp)
+          })));
+        } catch (e) {
+          console.error('Failed to load chat:', e);
+          setMessages([]);
+        }
+      } else {
+        setMessages([]);
+      }
+    };
+    loadChat();
+  }, [currentChatId]);
+
+  // Save current chat session
+  useEffect(() => {
+    if (messages.length > 0) {
+      const chatData = {
+        messages,
+        title: generateChatTitle(messages),
+        lastUpdated: new Date().toISOString(),
+        diseaseInfo: diseaseInfo || null
+      };
+      localStorage.setItem(`chat_session_${currentChatId}`, JSON.stringify(chatData));
+    }
+  }, [messages, currentChatId, diseaseInfo]);
+
+  // Save current chat ID
+  useEffect(() => {
+    localStorage.setItem('currentChatId', currentChatId);
+  }, [currentChatId]);
+
+  const generateChatTitle = (msgs) => {
+    if (!msgs || msgs.length === 0) return 'Chat Baru';
+    const firstUserMsg = msgs.find(m => !m.isBot);
+    if (firstUserMsg) {
+      return firstUserMsg.text.substring(0, 30) + (firstUserMsg.text.length > 30 ? '...' : '');
+    }
+    return 'Chat Baru';
+  };
+
+  const handleNewChat = () => {
+    const newChatId = `chat_${Date.now()}`;
+    setCurrentChatId(newChatId);
+    setMessages([]);
+    setIsOpen(true);
+  };
+
+  const handleSelectChat = (chatId) => {
+    setCurrentChatId(chatId);
+    setIsOpen(true);
+  };
+
+  const handleDeleteChat = (chatId) => {
+    if (chatId === currentChatId) {
+      // If deleting current chat, create new one
+      handleNewChat();
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -34,29 +91,18 @@ export default function ChatSection({ diseaseInfo }) {
     scrollToBottom();
   }, [messages]);
 
-  // Persist messages to sessionStorage
+  // Auto-open chat and add greeting when disease is detected
   useEffect(() => {
-    if (messages.length > 0) {
-      sessionStorage.setItem('chatMessages', JSON.stringify(messages));
-    }
-  }, [messages]);
-
-  // Persist open state
-  useEffect(() => {
-    sessionStorage.setItem('chatOpen', JSON.stringify(isOpen));
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (diseaseInfo && diseaseInfo.disease) {
+    if (diseaseInfo && diseaseInfo.disease && messages.length === 0) {
       setMessages([{
-        id: 1,
+        id: Date.now(),
         text: `Halo! Saya mendeteksi kondisi kulit **${diseaseInfo.disease}** dengan confidence ${(diseaseInfo.confidence * 100).toFixed(1)}%. Ada yang bisa saya bantu?`,
         isBot: true,
         timestamp: new Date()
       }]);
       setIsOpen(true);
     }
-  }, [diseaseInfo]);
+  }, [diseaseInfo, messages.length]);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || loading) return;
@@ -142,12 +188,30 @@ export default function ChatSection({ diseaseInfo }) {
         </button>
       )}
 
+      {/* Chat Sidebar */}
+      <ChatSidebar 
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        currentChatId={currentChatId}
+        onSelectChat={handleSelectChat}
+        onNewChat={handleNewChat}
+        onDeleteChat={handleDeleteChat}
+      />
+
       {/* Chat Window */}
       {isOpen && (
         <div className="fixed bottom-6 right-6 z-50 w-96 h-[600px] bg-white rounded-2xl shadow-2xl flex flex-col border border-slate-200">
           {/* Header */}
           <div className="bg-gradient-to-r from-emerald-500 to-teal-600 p-4 rounded-t-2xl flex items-center justify-between text-white">
             <div className="flex items-center gap-3">
+              {/* Sidebar Toggle Button */}
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="bg-white/20 p-2 rounded-lg hover:bg-white/30 transition-all"
+                title="Chat History"
+              >
+                <Menu size={20} />
+              </button>
               <div className="bg-white/20 p-2 rounded-lg">
                 <Bot size={24} />
               </div>

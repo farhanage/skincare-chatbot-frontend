@@ -1,36 +1,62 @@
-import React, { useState, useRef } from 'react';
-import { Upload, Camera, Activity, Sparkles, RotateCcw, Image as ImageIcon } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Upload, Camera, Activity, Sparkles, RotateCcw, Image as ImageIcon, ChevronRight } from 'lucide-react';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
-export default function UploadSection({ onPrediction, onImageUpload, persistedImage }) {
+export default function UploadSection({ onNavigateToProducts }) {
   const [file, setFile] = useState(null);
-  const [preview, setPreview] = useState(persistedImage || null);
+  const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [prediction, setPrediction] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
 
-  // Restore preview from persisted image on mount
-  React.useEffect(() => {
-    if (persistedImage && !preview) {
-      setPreview(persistedImage);
+  // Restore state from sessionStorage on mount
+  useEffect(() => {
+    const savedPreview = sessionStorage.getItem('uploadPreview');
+    const savedPrediction = sessionStorage.getItem('uploadPrediction');
+    
+    if (savedPreview) {
+      setPreview(savedPreview);
     }
-  }, [persistedImage]);
+    
+    if (savedPrediction) {
+      try {
+        setPrediction(JSON.parse(savedPrediction));
+      } catch (e) {
+        console.error('Failed to restore prediction:', e);
+      }
+    }
+  }, []);
 
-  const handleFileChange = (selectedFile) => {
+  // Save preview to sessionStorage when it changes
+  useEffect(() => {
+    if (preview) {
+      sessionStorage.setItem('uploadPreview', preview);
+    }
+  }, [preview]);
+
+  // Save prediction to sessionStorage when it changes
+  useEffect(() => {
+    if (prediction) {
+      sessionStorage.setItem('uploadPrediction', JSON.stringify(prediction));
+    }
+  }, [prediction]);
+
+  const handleFileChange = async (selectedFile) => {
     if (selectedFile && selectedFile.type.startsWith('image/')) {
       setFile(selectedFile);
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result);
-        // Notify parent to persist image
-        if (onImageUpload) {
-          onImageUpload(reader.result);
-        }
       };
       reader.readAsDataURL(selectedFile);
       setPrediction(null);
+      
+      // Auto-predict after file is selected
+      setTimeout(() => {
+        handlePredictWithFile(selectedFile);
+      }, 100);
     }
   };
 
@@ -67,29 +93,27 @@ export default function UploadSection({ onPrediction, onImageUpload, persistedIm
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-    // Clear persisted image
-    sessionStorage.removeItem('uploadedImage');
-    if (onImageUpload) {
-      onImageUpload(null);
-    }
+    // Clear sessionStorage
+    sessionStorage.removeItem('uploadPreview');
+    sessionStorage.removeItem('uploadPrediction');
   };
 
-  const handlePredict = async () => {
-    if (!file) return;
+  const handlePredictWithFile = async (fileToUpload) => {
+    if (!fileToUpload) return;
     
     setLoading(true);
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', fileToUpload);
       
-      const response = await fetch(`${API_BASE_URL}/api/v1/predict`, {
+      const apiResponse = await fetch(`${API_BASE_URL}/api/v1/predict`, {
         method: 'POST',
         body: formData,
       });
       
-      if (!response.ok) throw new Error('Prediction failed');
+      if (!apiResponse.ok) throw new Error('Prediction failed');
       
-      const result = await response.json();
+      const result = await apiResponse.json();
       
       const transformedResult = {
         disease: result.predictions.best.label,
@@ -101,13 +125,38 @@ export default function UploadSection({ onPrediction, onImageUpload, persistedIm
       };
       
       setPrediction(transformedResult);
-      onPrediction(transformedResult);
       
     } catch (error) {
       alert('Error: ' + error.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePredict = async () => {
+    // Allow prediction if we have preview (recreate file from preview if needed)
+    if (!preview) return;
+    
+    let fileToUpload = file;
+    
+    // If no file but have preview (restored from sessionStorage), recreate file
+    if (!fileToUpload && preview) {
+      try {
+        const response = await fetch(preview);
+        const blob = await response.blob();
+        fileToUpload = new File([blob], 'restored-image.jpg', { type: 'image/jpeg' });
+      } catch (error) {
+        alert('Failed to recreate file from preview');
+        return;
+      }
+    }
+    
+    if (!fileToUpload) {
+      alert('No file available for prediction');
+      return;
+    }
+    
+    await handlePredictWithFile(fileToUpload);
   };
 
   return (
@@ -247,7 +296,7 @@ export default function UploadSection({ onPrediction, onImageUpload, persistedIm
         {preview && !prediction && (
           <button
             onClick={handlePredict}
-            disabled={!file || loading}
+            disabled={loading}
             className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-5 rounded-xl font-bold hover:from-emerald-600 hover:to-teal-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all shadow-lg hover:scale-[1.02] text-lg"
           >
             {loading ? (
@@ -315,8 +364,28 @@ export default function UploadSection({ onPrediction, onImageUpload, persistedIm
               </div>
             </div>
 
+            {/* Action Buttons */}
+            <div className="mt-6 space-y-3">
+              {/* View Products Button - Navigate (persistence will keep state) */}
+              <button
+                onClick={() => onNavigateToProducts && onNavigateToProducts()}
+                className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-4 rounded-xl font-bold hover:from-blue-600 hover:to-indigo-700 transition-all shadow-lg hover:scale-[1.02] flex items-center justify-center gap-3 text-lg"
+              >
+                <ChevronRight size={24} />
+                Lihat Rekomendasi Produk
+              </button>
+
+              {/* Reset Button */}
+              <button
+                onClick={handleReset}
+                className="w-full bg-white text-slate-700 py-4 rounded-xl font-bold border-2 border-slate-300 hover:bg-slate-50 transition-all shadow-md hover:scale-[1.02] text-lg"
+              >
+                Upload Gambar Lain
+              </button>
+            </div>
+
             {/* CTA */}
-            <div className="mt-6 p-4 bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200 rounded-xl">
+            <div className="mt-4 p-4 bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200 rounded-xl">
               <p className="text-cyan-800 text-sm text-center font-semibold">
                 Ingin konsultasi lebih lanjut? Klik tombol chat di pojok kanan bawah!
               </p>

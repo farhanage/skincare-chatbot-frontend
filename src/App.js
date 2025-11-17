@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import UploadSection from './components/UploadSection';
-import ChatSection from './components/ChatSection';
-import Header from './components/Header';
+import Sidebar from './components/Sidebar';
 import Login from './components/Login';
 import Register from './components/Register';
 import Products from './components/Products';
 import AdminDashboard from './components/AdminDashboard';
+import AIChatPage from './components/AIChatPage';
 import bgImage from './assets/bg.png';
 
 function App() {
-  const [prediction, setPrediction] = useState(null);
-  const [currentView, setCurrentView] = useState('home'); // 'home', 'login', 'register', 'products'
+  const [currentView, setCurrentView] = useState('home'); // 'home', 'ai-chat', 'login', 'register', 'products'
   const [user, setUser] = useState(null);
-  const [uploadedImage, setUploadedImage] = useState(null); // Persist uploaded image
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [currentChatId, setCurrentChatId] = useState(null);
 
   // Check for saved user on mount
   useEffect(() => {
@@ -24,22 +24,56 @@ function App() {
         localStorage.removeItem('user');
       }
     }
-    
-    // Restore uploaded image if exists
-    const savedImage = sessionStorage.getItem('uploadedImage');
-    if (savedImage) {
-      setUploadedImage(savedImage);
-    }
   }, []);
 
-  const handlePrediction = (result) => {
-    setPrediction(result);
+  // Chat management functions
+  const handleNewChat = () => {
+    const newChatId = `chat_${Date.now()}`;
+    const newSession = {
+      id: newChatId,
+      title: 'Chat Baru',
+      createdAt: new Date().toISOString(),
+      lastUpdated: new Date().toISOString(),
+      messageCount: 0
+    };
+
+    if (user) {
+      const userChatsKey = `user_${user.id}_chats`;
+      const saved = localStorage.getItem(userChatsKey);
+      const sessions = saved ? JSON.parse(saved) : [];
+      const updated = [newSession, ...sessions];
+      localStorage.setItem(userChatsKey, JSON.stringify(updated));
+    }
+
+    setCurrentChatId(newChatId);
   };
-  
-  const handleImageUpload = (imageData) => {
-    setUploadedImage(imageData);
-    // Save to sessionStorage so it persists during navigation
-    sessionStorage.setItem('uploadedImage', imageData);
+
+  const handleSelectChat = (chatId) => {
+    setCurrentChatId(chatId);
+  };
+
+  const handleDeleteChat = (chatId) => {
+    if (!window.confirm('Hapus chat ini?')) return;
+    
+    if (user) {
+      // Remove chat messages
+      const chatKey = `user_${user.id}_chat_${chatId}`;
+      localStorage.removeItem(chatKey);
+      
+      // Update sessions list
+      const userChatsKey = `user_${user.id}_chats`;
+      const saved = localStorage.getItem(userChatsKey);
+      if (saved) {
+        const sessions = JSON.parse(saved);
+        const updated = sessions.filter(s => s.id !== chatId);
+        localStorage.setItem(userChatsKey, JSON.stringify(updated));
+      }
+    }
+
+    // If deleting current chat, create new one
+    if (chatId === currentChatId) {
+      handleNewChat();
+    }
   };
 
   const handleLogin = (userData) => {
@@ -55,6 +89,9 @@ function App() {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    // Clear upload session data
+    sessionStorage.removeItem('uploadPreview');
+    sessionStorage.removeItem('uploadPrediction');
     setUser(null);
     setCurrentView('home');
   };
@@ -77,12 +114,82 @@ function App() {
     return <AdminDashboard user={user} onNavigate={setCurrentView} />;
   }
 
+  // AI Chat Page with Sidebar
+  if (currentView === 'ai-chat') {
+    if (!user) {
+      setCurrentView('login');
+      return null;
+    }
+    return (
+      <div className="flex h-screen overflow-hidden">
+        <Sidebar 
+          currentPage="ai-chat"
+          onNavigate={setCurrentView}
+          user={user}
+          onLogout={handleLogout}
+          isOpen={sidebarOpen}
+          onToggle={() => setSidebarOpen(!sidebarOpen)}
+          onNewChat={handleNewChat}
+          onSelectChat={handleSelectChat}
+          onDeleteChat={handleDeleteChat}
+          currentChatId={currentChatId}
+        />
+        <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-16'}`}>
+          <AIChatPage 
+            user={user} 
+            currentChatId={currentChatId}
+            onChatIdChange={setCurrentChatId}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Products Page with Sidebar
   if (currentView === 'products') {
     return (
-      <div className="min-h-screen relative">
+      <div className="flex h-screen overflow-hidden">
+        <Sidebar 
+          currentPage="products"
+          onNavigate={setCurrentView}
+          user={user}
+          onLogout={handleLogout}
+          isOpen={sidebarOpen}
+          onToggle={() => setSidebarOpen(!sidebarOpen)}
+        />
+        <div className={`flex-1 min-h-screen relative overflow-y-auto transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-16'}`}>
+          {/* Background Image */}
+          <div className="fixed inset-0 opacity-60 pointer-events-none" style={{
+            backgroundImage: `url('/bg.png')`,
+            backgroundSize: '100% 100%',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat'
+          }}></div>
+          <div className="fixed inset-0 bg-gradient-to-br from-white/80 via-emerald-50/70 to-teal-50/70 pointer-events-none"></div>
+          
+          <div className="relative z-10">
+            <Products user={user} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Home Page with Sidebar
+  return (
+    <div className="flex h-screen overflow-hidden">
+      <Sidebar 
+        currentPage="home"
+        onNavigate={setCurrentView}
+        user={user}
+        onLogout={handleLogout}
+        isOpen={sidebarOpen}
+        onToggle={() => setSidebarOpen(!sidebarOpen)}
+      />
+      <div className={`flex-1 min-h-screen relative overflow-y-auto transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-16'}`}>
         {/* Background Image */}
         <div className="fixed inset-0 opacity-60 pointer-events-none" style={{
-          backgroundImage: `url('/bg.png')`,
+          backgroundImage: `url(${bgImage})`,
           backgroundSize: '100% 100%',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat'
@@ -90,48 +197,14 @@ function App() {
         <div className="fixed inset-0 bg-gradient-to-br from-white/80 via-emerald-50/70 to-teal-50/70 pointer-events-none"></div>
         
         <div className="relative z-10">
-          <Header 
-            onNavigate={setCurrentView}
-            currentPage="products"
-            user={user}
-            onLogout={handleLogout}
-          />
-          <Products user={user} />
+          <main className="px-4 py-12 lg:py-20">
+            <div className="max-w-6xl mx-auto">
+              <UploadSection 
+                onNavigateToProducts={() => setCurrentView('products')}
+              />
+            </div>
+          </main>
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen relative">
-      {/* Background Image */}
-      <div className="fixed inset-0 opacity-60 pointer-events-none" style={{
-        backgroundImage: `url(${bgImage})`,
-        backgroundSize: '100% 100%',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
-      }}></div>
-      <div className="fixed inset-0 bg-gradient-to-br from-white/80 via-emerald-50/70 to-teal-50/70 pointer-events-none"></div>
-      
-      <div className="relative z-10">
-        <Header 
-          onNavigate={setCurrentView}
-          currentPage="upload"
-          user={user}
-          onLogout={handleLogout}
-        />
-        
-        <main className="px-4 py-12 lg:py-20">
-          <div className="max-w-6xl mx-auto">
-            <UploadSection 
-              onPrediction={handlePrediction} 
-              onImageUpload={handleImageUpload}
-              persistedImage={uploadedImage}
-            />
-          </div>
-        </main>
-
-        <ChatSection diseaseInfo={prediction} />
       </div>
     </div>
   );

@@ -1,6 +1,9 @@
 // src/components/Products.js
 import React, { useState, useEffect } from 'react';
-import { Filter, ChevronLeft, ChevronRight, X, Search } from 'lucide-react';
+import { Filter, ChevronLeft, ChevronRight, X, Search, ShoppingCart, History } from 'lucide-react';
+import Cart from './Cart';
+import Checkout from './Checkout';
+import OrderHistory from './OrderHistory';
 import './Products.css';
 
 const Products = ({ user }) => {
@@ -9,6 +12,9 @@ const Products = ({ user }) => {
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCart, setShowCart] = useState(false);
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [showOrderHistory, setShowOrderHistory] = useState(false);
+  const [checkoutData, setCheckoutData] = useState(null);
   const [message, setMessage] = useState('');
   
   // Pagination
@@ -53,20 +59,17 @@ const Products = ({ user }) => {
     }
   };
 
-  const fetchCart = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8000/api/v1/cart', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      const data = await response.json();
-      if (data.success) {
-        setCart(data.items);
+  const fetchCart = () => {
+    if (!user) return;
+    
+    const cartKey = `cart_${user.id}`;
+    const savedCart = localStorage.getItem(cartKey);
+    if (savedCart) {
+      try {
+        setCart(JSON.parse(savedCart));
+      } catch (e) {
+        console.error('Failed to load cart:', e);
       }
-    } catch (err) {
-      console.error('Failed to fetch cart:', err);
     }
   };
 
@@ -144,70 +147,68 @@ const Products = ({ user }) => {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8000/api/v1/cart/add', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          product_id: productId,
-          quantity: 1
-        })
-      });
+      // Find product
+      const product = products.find(p => p.id === productId);
+      if (!product) return;
 
-      const data = await response.json();
-      if (data.success) {
+      // Get current cart from localStorage
+      const cartKey = `cart_${user.id}`;
+      const savedCart = localStorage.getItem(cartKey);
+      let currentCart = savedCart ? JSON.parse(savedCart) : [];
+
+      // Check if product already in cart
+      const existingIndex = currentCart.findIndex(item => item.id === productId);
+      
+      if (existingIndex >= 0) {
+        // Increase quantity
+        currentCart[existingIndex].quantity += 1;
         showMessage('✓ Produk ditambahkan ke keranjang!');
-        fetchCart();
+      } else {
+        // Add new item
+        currentCart.push({
+          id: product.id,
+          name: product.name,
+          brand: product.brand,
+          price: product.price,
+          quantity: 1
+        });
+        showMessage('✓ Produk ditambahkan ke keranjang!');
       }
+
+      // Save to localStorage
+      localStorage.setItem(cartKey, JSON.stringify(currentCart));
+      setCart(currentCart);
     } catch (err) {
       showMessage('✗ Gagal menambahkan ke keranjang');
     }
   };
 
-  const updateCartQuantity = async (productId, quantity) => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8000/api/v1/cart/update', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          product_id: productId,
-          quantity: quantity
-        })
-      });
-
-      if (response.ok) {
-        fetchCart();
-      }
-    } catch (err) {
-      console.error('Failed to update cart:', err);
+  const buyNow = async (productId) => {
+    if (!user) {
+      showMessage('Silakan login terlebih dahulu!');
+      return;
     }
-  };
 
-  const checkout = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8000/api/v1/checkout', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      // Find product
+      const product = products.find(p => p.id === productId);
+      if (!product) return;
 
-      const data = await response.json();
-      if (data.success) {
-        showMessage('✓ ' + data.message);
-        setCart([]);
-        setShowCart(false);
-      }
+      // Create checkout data with single item
+      const items = [{
+        id: product.id,
+        name: product.name,
+        brand: product.brand,
+        price: product.price,
+        quantity: 1
+      }];
+
+      const total = product.price;
+
+      setCheckoutData({ items, total, fromCart: false }); // Mark as direct buy
+      setShowCheckout(true);
     } catch (err) {
-      showMessage('✗ Checkout gagal');
+      showMessage('✗ Gagal memproses pembelian');
     }
   };
 
@@ -232,8 +233,6 @@ const Products = ({ user }) => {
     }
     return `> ${formatPrice(min)}`;
   };
-
-  const cartTotal = cart.reduce((sum, item) => sum + (item.item_total || 0), 0);
 
   if (loading) {
     return (
@@ -265,17 +264,27 @@ const Products = ({ user }) => {
           </div>
           
           {user && (
-            <button
-              onClick={() => setShowCart(!showCart)}
-              className="relative bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white px-6 py-3 rounded-xl transition-all duration-200 font-bold shadow-lg hover:shadow-xl flex items-center gap-2"
-            >
-              <span>Keranjang</span>
-              {cart.length > 0 && (
-                <span className="absolute -top-2 -right-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs font-bold rounded-full w-7 h-7 flex items-center justify-center shadow-lg">
-                  {cart.length}
-                </span>
-              )}
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowOrderHistory(true)}
+                className="bg-white border-2 border-emerald-500 text-emerald-600 px-6 py-3 rounded-xl transition-all duration-200 font-bold hover:bg-emerald-50 flex items-center gap-2"
+              >
+                <History size={20} />
+                <span>Riwayat</span>
+              </button>
+              <button
+                onClick={() => setShowCart(true)}
+                className="relative bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white px-6 py-3 rounded-xl transition-all duration-200 font-bold shadow-lg hover:shadow-xl flex items-center gap-2"
+              >
+                <ShoppingCart size={20} />
+                <span>Keranjang</span>
+                {cart.length > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs font-bold rounded-full w-7 h-7 flex items-center justify-center shadow-lg">
+                    {cart.length}
+                  </span>
+                )}
+              </button>
+            </div>
           )}
         </div>
 
@@ -496,7 +505,7 @@ const Products = ({ user }) => {
                       ))}
                     </div>
                     
-                    {/* Price and Button */}
+                    {/* Price and Buttons */}
                     <div className="mt-auto pt-4 border-t border-slate-100">
                       <div className="flex items-center justify-between mb-3">
                         <div className="text-xl font-black text-slate-900">
@@ -504,12 +513,21 @@ const Products = ({ user }) => {
                         </div>
                       </div>
                       
-                      <button
-                        onClick={() => addToCart(product.id)}
-                        className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-4 py-3 rounded-xl transition-all duration-200 font-bold shadow-md hover:shadow-lg transform hover:scale-[1.02] active:scale-[0.98]"
-                      >
-                        + Keranjang
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => addToCart(product.id)}
+                          className="flex-1 bg-white border-2 border-emerald-500 text-emerald-600 px-3 py-3 rounded-xl transition-all duration-200 font-bold hover:bg-emerald-50 flex items-center justify-center gap-1.5 transform hover:scale-[1.02] active:scale-[0.98]"
+                        >
+                          <ShoppingCart size={16} />
+                          <span className="text-sm">Keranjang</span>
+                        </button>
+                        <button
+                          onClick={() => buyNow(product.id)}
+                          className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-3 py-3 rounded-xl transition-all duration-200 font-bold shadow-md hover:shadow-lg transform hover:scale-[1.02] active:scale-[0.98]"
+                        >
+                          <span className="text-sm">Beli</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -574,102 +592,7 @@ const Products = ({ user }) => {
         )}
       </div>
 
-      {/* Cart Sidebar */}
-      {showCart && user && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40" onClick={() => setShowCart(false)}>
-          <div
-            className="fixed right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl overflow-y-auto animate-slide-in-right"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="p-6">
-              {/* Cart Header */}
-              <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-200">
-                <div>
-                  <h2 className="text-3xl font-black text-slate-900">Keranjang</h2>
-                  <p className="text-slate-500 text-sm mt-1">{cart.length} item</p>
-                </div>
-                <button
-                  onClick={() => setShowCart(false)}
-                  className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-colors text-2xl"
-                >
-                  ×
-                </button>
-              </div>
 
-              {cart.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="text-6xl mb-4">🛒</div>
-                  <p className="text-slate-500 text-lg font-medium">
-                    Keranjang masih kosong
-                  </p>
-                  <p className="text-slate-400 text-sm mt-2">
-                    Yuk mulai belanja!
-                  </p>
-                </div>
-              ) : (
-                <>
-                  {/* Cart Items */}
-                  <div className="space-y-4 mb-6">
-                    {cart.map((item) => (
-                      <div
-                        key={item.product_id}
-                        className="bg-slate-50 rounded-xl p-4 border border-slate-200 hover:border-emerald-300 transition-colors"
-                      >
-                        <h3 className="font-bold text-slate-900 mb-2 line-clamp-2">
-                          {item.product?.name}
-                        </h3>
-                        <p className="text-emerald-600 font-black text-lg mb-3">
-                          {formatPrice(item.product?.price)}
-                        </p>
-                        
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2 bg-white rounded-lg p-1 border border-slate-200">
-                            <button
-                              onClick={() => updateCartQuantity(item.product_id, item.quantity - 1)}
-                              className="w-8 h-8 bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-600 rounded-lg font-bold transition-colors"
-                            >
-                              −
-                            </button>
-                            <span className="text-slate-900 font-bold w-10 text-center">
-                              {item.quantity}
-                            </span>
-                            <button
-                              onClick={() => updateCartQuantity(item.product_id, item.quantity + 1)}
-                              className="w-8 h-8 bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-600 rounded-lg font-bold transition-colors"
-                            >
-                              +
-                            </button>
-                          </div>
-                          
-                          <span className="text-slate-900 font-black text-lg">
-                            {formatPrice(item.item_total)}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Total Section */}
-                  <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-5 mb-6 border border-emerald-200">
-                    <div className="flex justify-between items-center">
-                      <span className="text-slate-700 font-bold text-lg">Total Belanja:</span>
-                      <span className="text-emerald-600 font-black text-2xl">{formatPrice(cartTotal)}</span>
-                    </div>
-                  </div>
-
-                  {/* Checkout Button */}
-                  <button
-                    onClick={checkout}
-                    className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-black text-lg py-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    Checkout Sekarang
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       <style jsx>{`
         @keyframes slide-in {
@@ -714,6 +637,53 @@ const Products = ({ user }) => {
           overflow: hidden;
         }
       `}</style>
+
+      {/* Cart Modal */}
+      {showCart && user && (
+        <Cart
+          user={user}
+          onClose={() => setShowCart(false)}
+          onCheckout={(items, total) => {
+            setCheckoutData({ items, total, fromCart: true }); // Mark as from cart
+            setShowCart(false);
+            setShowCheckout(true);
+          }}
+        />
+      )}
+
+      {/* Checkout Modal */}
+      {showCheckout && checkoutData && (
+        <Checkout
+          user={user}
+          cartItems={checkoutData.items}
+          total={checkoutData.total}
+          onClose={() => {
+            setShowCheckout(false);
+            setCheckoutData(null);
+          }}
+          onSuccess={(order) => {
+            // Only clear cart if checkout was from cart
+            if (checkoutData?.fromCart) {
+              const cartKey = `cart_${user.id}`;
+              localStorage.removeItem(cartKey);
+              setCart([]);
+            }
+            
+            setShowCheckout(false);
+            setCheckoutData(null);
+            showMessage(`✓ Pesanan berhasil dibuat! Order ID: ${order.id}`);
+            fetchCart(); // Refresh cart
+          }}
+        />
+      )}
+
+      {/* Order History Modal */}
+      {showOrderHistory && user && (
+        <OrderHistory
+          user={user}
+          onClose={() => setShowOrderHistory(false)}
+        />
+      )}
     </div>
   );
 };
