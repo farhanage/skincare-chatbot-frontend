@@ -12,6 +12,7 @@ function App() {
   const [prediction, setPrediction] = useState(null);
   const [currentView, setCurrentView] = useState('home'); // 'home', 'login', 'register', 'products'
   const [user, setUser] = useState(null);
+  const [uploadedImage, setUploadedImage] = useState(null); // Persist uploaded image
 
   // Check for saved user on mount
   useEffect(() => {
@@ -23,10 +24,22 @@ function App() {
         localStorage.removeItem('user');
       }
     }
+    
+    // Restore uploaded image if exists
+    const savedImage = sessionStorage.getItem('uploadedImage');
+    if (savedImage) {
+      setUploadedImage(savedImage);
+    }
   }, []);
 
   const handlePrediction = (result) => {
     setPrediction(result);
+  };
+  
+  const handleImageUpload = (imageData) => {
+    setUploadedImage(imageData);
+    // Save to sessionStorage so it persists during navigation
+    sessionStorage.setItem('uploadedImage', imageData);
   };
 
   const handleLogin = (userData) => {
@@ -110,7 +123,11 @@ function App() {
         
         <main className="px-4 py-12 lg:py-20">
           <div className="max-w-6xl mx-auto">
-            <UploadSection onPrediction={handlePrediction} />
+            <UploadSection 
+              onPrediction={handlePrediction} 
+              onImageUpload={handleImageUpload}
+              persistedImage={uploadedImage}
+            />
           </div>
         </main>
 

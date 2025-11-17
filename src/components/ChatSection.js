@@ -4,10 +4,18 @@ import { Send, Bot, User, X, MessageCircle, ShoppingCart, ExternalLink } from 'l
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 export default function ChatSection({ diseaseInfo }) {
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState(() => {
+    // Restore messages from sessionStorage
+    const saved = sessionStorage.getItem('chatMessages');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [inputMessage, setInputMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(() => {
+    // Restore open state
+    const saved = sessionStorage.getItem('chatOpen');
+    return saved ? JSON.parse(saved) : false;
+  });
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -17,6 +25,18 @@ export default function ChatSection({ diseaseInfo }) {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Persist messages to sessionStorage
+  useEffect(() => {
+    if (messages.length > 0) {
+      sessionStorage.setItem('chatMessages', JSON.stringify(messages));
+    }
+  }, [messages]);
+
+  // Persist open state
+  useEffect(() => {
+    sessionStorage.setItem('chatOpen', JSON.stringify(isOpen));
+  }, [isOpen]);
 
   useEffect(() => {
     if (diseaseInfo && diseaseInfo.disease) {

@@ -3,13 +3,20 @@ import { Upload, Camera, Activity, Sparkles, RotateCcw, Image as ImageIcon } fro
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
-export default function UploadSection({ onPrediction }) {
+export default function UploadSection({ onPrediction, onImageUpload, persistedImage }) {
   const [file, setFile] = useState(null);
-  const [preview, setPreview] = useState(null);
+  const [preview, setPreview] = useState(persistedImage || null);
   const [loading, setLoading] = useState(false);
   const [prediction, setPrediction] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
+
+  // Restore preview from persisted image on mount
+  React.useEffect(() => {
+    if (persistedImage && !preview) {
+      setPreview(persistedImage);
+    }
+  }, [persistedImage]);
 
   const handleFileChange = (selectedFile) => {
     if (selectedFile && selectedFile.type.startsWith('image/')) {
@@ -17,6 +24,10 @@ export default function UploadSection({ onPrediction }) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result);
+        // Notify parent to persist image
+        if (onImageUpload) {
+          onImageUpload(reader.result);
+        }
       };
       reader.readAsDataURL(selectedFile);
       setPrediction(null);
@@ -55,6 +66,11 @@ export default function UploadSection({ onPrediction }) {
     setPrediction(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+    // Clear persisted image
+    sessionStorage.removeItem('uploadedImage');
+    if (onImageUpload) {
+      onImageUpload(null);
     }
   };
 
