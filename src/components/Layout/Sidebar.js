@@ -1,15 +1,27 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, MessageSquare, ShoppingBag, User, LogOut, ChevronLeft, ChevronRight, Plus, Trash2, LogIn, UserPlus, AlertCircle } from 'lucide-react';
 
-export default function Sidebar({ currentPage, onNavigate, user, onLogout, isOpen, onToggle, onNewChat, onSelectChat, onDeleteChat, currentChatId }) {
+export default function Sidebar({ user, onLogout, isOpen, onToggle, onNewChat, onSelectChat, onDeleteChat, currentChatId }) {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [chatSessions, setChatSessions] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [chatToDelete, setChatToDelete] = useState(null);
 
+  // Determine current page from route
+  const getCurrentPage = () => {
+    if (location.pathname === '/chat') return 'ai-chat';
+    if (location.pathname === '/products') return 'products';
+    return 'home';
+  };
+
+  const currentPage = getCurrentPage();
+
   const menuItems = [
-    { id: 'home', label: 'Home', icon: Home },
-    { id: 'ai-chat', label: 'AI Chat', icon: MessageSquare },
-    { id: 'products', label: 'Produk', icon: ShoppingBag },
+    { id: '/', label: 'Home', icon: Home },
+    { id: '/chat', label: 'AI Chat', icon: MessageSquare },
+    { id: '/products', label: 'Produk', icon: ShoppingBag },
   ];
 
   // Load chat sessions when on AI Chat page
@@ -120,12 +132,12 @@ export default function Sidebar({ currentPage, onNavigate, user, onLogout, isOpe
           <ul className="space-y-1.5">
             {menuItems.map((item) => {
               const Icon = item.icon;
-              const isActive = currentPage === item.id;
+              const isActive = location.pathname === item.id;
               
               return (
                 <li key={item.id}>
                   <button
-                    onClick={() => onNavigate(item.id)}
+                    onClick={() => navigate(item.id)}
                     className={`w-full flex items-center ${isOpen ? 'gap-3 px-4' : 'justify-center px-0'} py-3.5 rounded-xl font-bold transition-all duration-200 group ${
                       isActive
                         ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-200 scale-[1.02]'
@@ -241,14 +253,14 @@ export default function Sidebar({ currentPage, onNavigate, user, onLogout, isOpe
           isOpen ? (
             <div className="space-y-2">
               <button
-                onClick={() => onNavigate('login')}
+                onClick={() => navigate('/login')}
                 className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-bold hover:from-emerald-600 hover:to-teal-700 transition-all duration-200 shadow-lg shadow-emerald-200 hover:shadow-xl"
               >
                 <LogIn size={18} />
                 <span className="tracking-wide">Login</span>
               </button>
               <button
-                onClick={() => onNavigate('register')}
+                onClick={() => navigate('/register')}
                 className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white text-emerald-600 border-2 border-emerald-500 rounded-xl font-bold hover:bg-emerald-50 transition-all duration-200"
               >
                 <UserPlus size={18} />
@@ -258,14 +270,14 @@ export default function Sidebar({ currentPage, onNavigate, user, onLogout, isOpe
           ) : (
             <div className="space-y-2">
               <button
-                onClick={() => onNavigate('login')}
+                onClick={() => navigate('/login')}
                 className="w-full flex items-center justify-center p-3 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-all duration-200"
                 title="Login"
               >
                 <LogIn size={20} />
               </button>
               <button
-                onClick={() => onNavigate('register')}
+                onClick={() => navigate('/register')}
                 className="w-full flex items-center justify-center p-3 border-2 border-emerald-500 text-emerald-600 rounded-xl hover:bg-emerald-50 transition-all duration-200"
                 title="Daftar"
               >

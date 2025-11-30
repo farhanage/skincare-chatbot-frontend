@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { LogIn, Mail, Lock, AlertCircle, ArrowLeft } from 'lucide-react';
-import bgImage from '../assets/bg.png';
+import bgImage from '../../assets/bg.png';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
-export default function Login({ onLogin, onNavigate }) {
+export default function Login({ onLogin }) {
+  const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -37,6 +39,7 @@ export default function Login({ onLogin, onNavigate }) {
       localStorage.setItem('token', data.access_token);
       localStorage.setItem('user', JSON.stringify(data.user));
       onLogin(data.user);
+      navigate('/');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -67,7 +70,7 @@ export default function Login({ onLogin, onNavigate }) {
       
       {/* Back Button */}
       <button
-        onClick={() => onNavigate('home')}
+        onClick={() => navigate('/')}
         disabled={loading}
         className="absolute top-6 left-6 group flex items-center justify-center w-12 h-12 bg-white/95 backdrop-blur-xl hover:bg-gradient-to-r hover:from-emerald-500 hover:to-teal-600 text-slate-700 hover:text-white rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 z-20 border-2 border-slate-200 hover:border-transparent hover:scale-110 hover:rotate-[-15deg] disabled:opacity-50 disabled:cursor-not-allowed"
       >
@@ -146,7 +149,7 @@ export default function Login({ onLogin, onNavigate }) {
             <p className="text-slate-600 font-medium">
               Belum punya akun?{' '}
               <button
-                onClick={() => onNavigate('register')}
+                onClick={() => navigate('/register')}
                 className="text-emerald-600 font-bold hover:text-emerald-700 hover:underline"
               >
                 Daftar Sekarang

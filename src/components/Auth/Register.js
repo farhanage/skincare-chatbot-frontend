@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { UserPlus, Mail, Lock, User, AlertCircle, ArrowLeft } from 'lucide-react';
-import bgImage from '../assets/bg.png';
+import bgImage from '../../assets/bg.png';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
-export default function Register({ onNavigate }) {
+export default function Register() {
+  const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -48,7 +50,7 @@ export default function Register({ onNavigate }) {
       }
 
       alert('Registrasi berhasil! Silakan login.');
-      onNavigate('login');
+      navigate('/login');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -79,7 +81,7 @@ export default function Register({ onNavigate }) {
       
       {/* Back Button */}
       <button
-        onClick={() => onNavigate('home')}
+        onClick={() => navigate('/')}
         disabled={loading}
         className="absolute top-6 left-6 group flex items-center justify-center w-12 h-12 bg-white/95 backdrop-blur-xl hover:bg-gradient-to-r hover:from-emerald-500 hover:to-teal-600 text-slate-700 hover:text-white rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 z-20 border-2 border-slate-200 hover:border-transparent hover:scale-110 hover:rotate-[-15deg] disabled:opacity-50 disabled:cursor-not-allowed"
       >
@@ -188,7 +190,7 @@ export default function Register({ onNavigate }) {
             <p className="text-slate-600 font-medium">
               Sudah punya akun?{' '}
               <button
-                onClick={() => onNavigate('login')}
+                onClick={() => navigate('/login')}
                 className="text-emerald-600 font-bold hover:text-emerald-700 hover:underline"
               >
                 Masuk Sekarang

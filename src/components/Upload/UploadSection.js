@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Upload, Camera, Activity, Sparkles, RotateCcw, Image as ImageIcon, ChevronRight } from 'lucide-react';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
-export default function UploadSection({ onNavigateToProducts }) {
+export default function UploadSection() {
+  const navigate = useNavigate();
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -368,7 +370,7 @@ export default function UploadSection({ onNavigateToProducts }) {
             <div className="mt-6 space-y-3">
               {/* View Products Button - Navigate (persistence will keep state) */}
               <button
-                onClick={() => onNavigateToProducts && onNavigateToProducts()}
+                onClick={() => navigate('/products')}
                 className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-4 rounded-xl font-bold hover:from-blue-600 hover:to-indigo-700 transition-all shadow-lg hover:scale-[1.02] flex items-center justify-center gap-3 text-lg"
               >
                 <ChevronRight size={24} />

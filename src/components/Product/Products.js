@@ -1,9 +1,9 @@
 // src/components/Products.js
 import React, { useState, useEffect } from 'react';
 import { Filter, ChevronLeft, ChevronRight, X, Search, ShoppingCart, History } from 'lucide-react';
-import Cart from './Cart';
-import Checkout from './Checkout';
-import OrderHistory from './OrderHistory';
+import Cart from '../Cart/Cart';
+import Checkout from '../Order/Checkout';
+import OrderHistory from '../Order/OrderHistory';
 import './Products.css';
 
 const Products = ({ user }) => {

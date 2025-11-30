@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Database, Users, ShoppingCart, Package, Terminal, RefreshCw, AlertCircle } from 'lucide-react';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
-export default function AdminDashboard({ user, onNavigate }) {
+export default function AdminDashboard({ user }) {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('info');
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null);
@@ -59,7 +61,7 @@ export default function AdminDashboard({ user, onNavigate }) {
               </p>
             </div>
             <button
-              onClick={() => onNavigate('home')}
+              onClick={() => navigate('/')}
               className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold transition-all shadow-lg"
             >
               Back to Home
