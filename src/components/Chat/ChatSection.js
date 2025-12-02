@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, X, MessageCircle, ShoppingCart, ExternalLink, Menu } from 'lucide-react';
 import ChatSidebar from './ChatSidebar';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const LLM_INFERENCE_URL = process.env.REACT_APP_LLM_INFERENCE_URL;
 
 export default function ChatSection({ diseaseInfo }) {
   const [currentChatId, setCurrentChatId] = useState(() => {
@@ -119,7 +119,7 @@ export default function ChatSection({ diseaseInfo }) {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/chat`, {
+      const response = await fetch(`${LLM_INFERENCE_URL}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

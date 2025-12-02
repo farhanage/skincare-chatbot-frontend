@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Package, Clock, CheckCircle, XCircle, Truck, Eye } from 'lucide-react';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 const statusConfig = {
   pending: { label: 'Menunggu Konfirmasi', icon: Clock, color: 'text-yellow-600 bg-yellow-50 border-yellow-200' },
@@ -25,7 +25,7 @@ export default function OrderHistory({ user, onClose }) {
 
   const loadOrders = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/orders/user/${user.id}`, {
+      const response = await fetch(`${API_BASE_URL}/user/${user.id}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }

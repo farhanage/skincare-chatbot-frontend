@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { API_BASE_URL } from '../utils/constants';
+import { REACT_APP_LLM_INFERENCE_URL } from '../utils/constants';
 
 /**
  * Send chat message for product recommendations
@@ -8,7 +8,7 @@ import { API_BASE_URL } from '../utils/constants';
  * @returns {Promise} Chat response
  */
 export const sendChatMessage = async (message, disease = null) => {
-  const response = await axios.post(`${API_BASE_URL}/api/v1/chat`, {
+  const response = await axios.post(`${REACT_APP_LLM_INFERENCE_URL}/chat`, {
     message,
     disease,
   });

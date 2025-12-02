@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { MapPin, User, Phone, CreditCard, X, CheckCircle } from 'lucide-react';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 export default function Checkout({ user, cartItems, total, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
@@ -57,7 +57,7 @@ export default function Checkout({ user, cartItems, total, onClose, onSuccess })
         status: 'pending'
       };
 
-      const response = await fetch(`${API_BASE_URL}/api/v1/orders`, {
+      const response = await fetch(`${API_BASE_URL}/orders/get_all_orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

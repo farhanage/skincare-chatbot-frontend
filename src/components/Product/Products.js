@@ -5,6 +5,7 @@ import Cart from '../Cart/Cart';
 import Checkout from '../Order/Checkout';
 import OrderHistory from '../Order/OrderHistory';
 import './Products.css';
+import { REACT_APP_API_BASE_URL } from '../../utils/constants';
 
 const Products = ({ user }) => {
   const [products, setProducts] = useState([]);
@@ -46,7 +47,7 @@ const Products = ({ user }) => {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/v1/products');
+      const response = await fetch(`${REACT_APP_API_BASE_URL}/products`);
       const data = await response.json();
       if (data.success) {
         setProducts(data.products);

@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../utils/constants';
+import { REACT_APP_VIT_INFERENCE_URL } from '../utils/constants';
 
 /**
  * Predict disease from uploaded image
@@ -9,7 +9,7 @@ export const predictDisease = async (file) => {
   const formData = new FormData();
   formData.append('file', file);
   
-  const response = await fetch(`${API_BASE_URL}/predict`, {
+  const response = await fetch(`${REACT_APP_VIT_INFERENCE_URL}/predict`, {
     method: 'POST',
     body: formData,
   });

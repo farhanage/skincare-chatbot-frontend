@@ -92,12 +92,12 @@ REACT_APP_API_URL=http://localhost:8000
 
 The app connects to the following backend endpoints:
 
-- `POST /api/v1/auth/login` - User login
-- `POST /api/v1/auth/register` - User registration
-- `POST /api/v1/chat` - AI chat
-- `GET /api/v1/products` - Get products
-- `POST /api/v1/orders` - Create order
-- `GET /api/v1/orders` - Get user orders
+- `POST /api/auth/login` - User login
+- `POST /api/auth/register` - User registration
+- `POST /api/chat` - AI chat
+- `GET /api/products` - Get products
+- `POST /api/orders` - Create order
+- `GET /api/orders/{order_id}` - Get user orders
 - `POST /predict` - Skin disease prediction
 
 ## Features Overview
@@ -157,10 +157,10 @@ Create service files in `src/services/`:
 ```javascript
 // src/services/myService.js
 import axios from 'axios';
-import { API_BASE_URL } from '../utils/constants';
+import { REACT_APP_API_BASE_URL } from '../utils/constants';
 
 export const myApiCall = async (data) => {
-  const response = await axios.post(`${API_BASE_URL}/endpoint`, data);
+  const response = await axios.post(`${REACT_APP_API_BASE_URL}/endpoint`, data);
   return response.data;
 };
 ```

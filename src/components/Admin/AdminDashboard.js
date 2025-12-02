@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Database, Users, ShoppingCart, Package, Terminal, RefreshCw, AlertCircle } from 'lucide-react';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+  
 export default function AdminDashboard({ user }) {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('info');
@@ -16,7 +16,7 @@ export default function AdminDashboard({ user }) {
     setError('');
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/v1/admin/debug/${endpoint}`, {
+      const response = await fetch(`${API_BASE_URL}/debug/${endpoint}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

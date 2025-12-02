@@ -1,4 +1,6 @@
-export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+export const REACT_APP_API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+export const REACT_APP_LLM_INFERENCE_URL = process.env.REACT_APP_LLM_INFERENCE_URL;
+export const REACT_APP_VIT_INFERENCE_URL = process.env.REACT_APP_VIT_INFERENCE_URL;
 
 export const USER_ROLES = {
   ADMIN: 'admin',

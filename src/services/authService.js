@@ -1,7 +1,7 @@
 import axios from 'axios';
-import { API_BASE_URL } from '../utils/constants';
+import { REACT_APP_API_BASE_URL } from '../utils/constants';
 
-const API_URL = `${API_BASE_URL}/api/v1/auth`;
+const API_URL = `${REACT_APP_API_BASE_URL}/auth`;
 
 /**
  * Login user
