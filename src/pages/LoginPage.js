@@ -1,5 +1,5 @@
 import React from 'react';
-import { Login } from '../components/Auth';
+import { Login } from '../features/auth';
 
 export default function LoginPage({ onLogin }) {
   return <Login onLogin={onLogin} />;

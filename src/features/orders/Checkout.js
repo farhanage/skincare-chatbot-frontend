@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { MapPin, User, Phone, CreditCard, X, CheckCircle } from 'lucide-react';
-
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+import { createOrder } from '../../services/orderService';
+import { isRequired } from '../../utils/validators';
 
 export default function Checkout({ user, cartItems, total, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
@@ -26,7 +26,9 @@ export default function Checkout({ user, cartItems, total, onClose, onSuccess })
     e.preventDefault();
     
     // Validation
-    if (!formData.fullName || !formData.phone || !formData.address || !formData.city || !formData.province) {
+    if (!isRequired(formData.fullName) || !isRequired(formData.phone) || 
+        !isRequired(formData.address) || !isRequired(formData.city) || 
+        !isRequired(formData.province)) {
       alert('Mohon lengkapi semua data!');
       return;
     }
@@ -57,18 +59,7 @@ export default function Checkout({ user, cartItems, total, onClose, onSuccess })
         status: 'pending'
       };
 
-      const response = await fetch(`${API_BASE_URL}/orders/get_all_orders`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(orderData)
-      });
-
-      if (!response.ok) throw new Error('Checkout failed');
-
-      const result = await response.json();
+      const result = await createOrder(orderData, localStorage.getItem('token'));
 
       // Clear cart
       const cartKey = `cart_${user.id}`;

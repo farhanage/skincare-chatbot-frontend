@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogIn, Mail, Lock, AlertCircle, ArrowLeft } from 'lucide-react';
 import bgImage from '../../assets/bg.png';
-
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+import { login, saveSession } from '../../services/authService';
 
 export default function Login({ onLogin }) {
   const navigate = useNavigate();
@@ -18,26 +17,8 @@ export default function Login({ onLogin }) {
     setLoading(true);
 
     try {
-      const formData = new URLSearchParams();
-      formData.append('username', username);
-      formData.append('password', password);
-
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: formData,
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.detail || 'Login gagal');
-      }
-
-      localStorage.setItem('token', data.access_token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      const data = await login(username, password);
+      saveSession(data.user, data.access_token);
       onLogin(data.user);
       navigate('/');
     } catch (err) {
@@ -72,58 +53,58 @@ export default function Login({ onLogin }) {
       <button
         onClick={() => navigate('/')}
         disabled={loading}
-        className="absolute top-6 left-6 group flex items-center justify-center w-12 h-12 bg-white/95 backdrop-blur-xl hover:bg-gradient-to-r hover:from-emerald-500 hover:to-teal-600 text-slate-700 hover:text-white rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 z-20 border-2 border-slate-200 hover:border-transparent hover:scale-110 hover:rotate-[-15deg] disabled:opacity-50 disabled:cursor-not-allowed"
+        className="absolute top-4 left-4 sm:top-6 sm:left-6 group flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-white/95 backdrop-blur-xl hover:bg-gradient-to-r hover:from-emerald-500 hover:to-teal-600 text-slate-700 hover:text-white rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 z-20 border-2 border-slate-200 hover:border-transparent hover:scale-110 hover:rotate-[-15deg] disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        <ArrowLeft size={22} className="group-hover:translate-x-[-2px] transition-transform" strokeWidth={2.5} />
+        <ArrowLeft size={20} className="sm:w-6 sm:h-6 group-hover:translate-x-[-2px] transition-transform" strokeWidth={2.5} />
       </button>
       
-      <div className="w-full max-w-md relative z-10">
+      <div className="w-full max-w-md relative z-10 px-4">
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-block bg-gradient-to-br from-emerald-500 to-teal-600 p-4 rounded-2xl shadow-xl mb-4">
-            <svg className="w-12 h-12 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="inline-block bg-gradient-to-br from-emerald-500 to-teal-600 p-3 sm:p-4 rounded-2xl shadow-xl mb-3 sm:mb-4">
+            <svg className="w-10 h-10 sm:w-12 sm:h-12 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
             </svg>
           </div>
-          <h1 className="text-3xl font-black text-slate-900 mb-2">Selamat Datang</h1>
-          <p className="text-slate-600 font-medium">Masuk ke akun SkinCare AI Anda</p>
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 mb-2">Selamat Datang</h1>
+          <p className="text-sm sm:text-base text-slate-600 font-medium">Masuk ke akun SkinCare AI Anda</p>
         </div>
 
         {/* Login Form */}
-        <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-8">
+        <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-6 sm:p-8">
           {error && (
-            <div className="mb-6 p-4 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-3">
-              <AlertCircle className="text-rose-500 flex-shrink-0 mt-0.5" size={20} />
-              <p className="text-rose-700 text-sm font-semibold">{error}</p>
+            <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2 sm:gap-3">
+              <AlertCircle className="text-rose-500 flex-shrink-0 mt-0.5" size={18} />
+              <p className="text-rose-700 text-xs sm:text-sm font-semibold">{error}</p>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
             <div>
-              <label className="block text-sm font-bold text-slate-900 mb-2">Username atau Email</label>
+              <label className="block text-xs sm:text-sm font-bold text-slate-900 mb-2">Username atau Email</label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
+                <Mail className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
                 <input
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 text-slate-900 font-medium"
-                  placeholder="admin atau nama@example.com"
+                  className="w-full pl-10 sm:pl-12 pr-4 py-2.5 sm:py-3 border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 text-sm sm:text-base text-slate-900 font-medium"
+                  placeholder="username or user@example.com"
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-slate-900 mb-2">Password</label>
+              <label className="block text-xs sm:text-sm font-bold text-slate-900 mb-2">Password</label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
+                <Lock className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 text-slate-900 font-medium"
-                  placeholder="Masukkan password"
+                  className="w-full pl-10 sm:pl-12 pr-4 py-2.5 sm:py-3 border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 text-sm sm:text-base text-slate-900 font-medium"
+                  placeholder="Enter your password"
                   required
                 />
               </div>
@@ -132,21 +113,21 @@ export default function Login({ onLogin }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white py-3 rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+              className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white py-2.5 sm:py-3 rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl flex items-center justify-center gap-2 text-sm sm:text-base"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
               ) : (
                 <>
-                  <LogIn size={20} />
+                  <LogIn size={18} className="sm:w-5 sm:h-5" />
                   Masuk
                 </>
               )}
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-slate-600 font-medium">
+          <div className="mt-4 sm:mt-6 text-center">
+            <p className="text-sm sm:text-base text-slate-600 font-medium">
               Belum punya akun?{' '}
               <button
                 onClick={() => navigate('/register')}

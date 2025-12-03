@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { REACT_APP_API_BASE_URL } from '../utils/constants';
 
 const API_URL = `${REACT_APP_API_BASE_URL}/orders`;
@@ -10,26 +9,40 @@ const API_URL = `${REACT_APP_API_BASE_URL}/orders`;
  * @returns {Promise} Order response
  */
 export const createOrder = async (orderData, token) => {
-  const response = await axios.post(API_URL, orderData, {
+  const response = await fetch(`${API_URL}/get_all_orders`, {
+    method: 'POST',
     headers: {
-      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
     },
+    body: JSON.stringify(orderData),
   });
-  return response.data;
+
+  if (!response.ok) {
+    throw new Error('Failed to create order');
+  }
+
+  return await response.json();
 };
 
 /**
  * Get user orders
+ * @param {string} userId - User ID
  * @param {string} token - Auth token
  * @returns {Promise} List of orders
  */
-export const getUserOrders = async (token) => {
-  const response = await axios.get(API_URL, {
+export const getUserOrders = async (userId, token) => {
+  const response = await fetch(`${REACT_APP_API_BASE_URL}/user/${userId}`, {
     headers: {
-      Authorization: `Bearer ${token}`,
+      'Authorization': `Bearer ${token}`,
     },
   });
-  return response.data;
+
+  if (!response.ok) {
+    throw new Error('Failed to load orders');
+  }
+
+  return await response.json();
 };
 
 /**
@@ -39,10 +52,15 @@ export const getUserOrders = async (token) => {
  * @returns {Promise} Order details
  */
 export const getOrderById = async (orderId, token) => {
-  const response = await axios.get(`${API_URL}/${orderId}`, {
+  const response = await fetch(`${API_URL}/${orderId}`, {
     headers: {
-      Authorization: `Bearer ${token}`,
+      'Authorization': `Bearer ${token}`,
     },
   });
-  return response.data;
+
+  if (!response.ok) {
+    throw new Error('Failed to load order');
+  }
+
+  return await response.json();
 };

@@ -1,102 +1,133 @@
 import { useState, useEffect } from 'react';
-import { CHAT_STORAGE } from '../utils/constants';
+import { getUserChats, createChat, deleteChat as apiDeleteChat, updateChatTitle as apiUpdateChatTitle } from '../services/chatService';
 
 /**
- * Custom hook for chat management
+ * Custom hook for chat management with backend API
  * @param {object} user - Current user
  * @returns {object} Chat state and methods
  */
 export const useChat = (user) => {
   const [sessions, setSessions] = useState([]);
   const [currentChatId, setCurrentChatId] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Load chat sessions
-  useEffect(() => {
-    if (user) {
-      const userChatsKey = CHAT_STORAGE.getUserChatsKey(user.id);
-      const saved = localStorage.getItem(userChatsKey);
-      if (saved) {
-        try {
-          setSessions(JSON.parse(saved));
-        } catch (e) {
-          console.error('Error loading chat sessions:', e);
-          setSessions([]);
-        }
-      }
-    } else {
+  // Load chat sessions from backend
+  const loadChatSessions = async () => {
+    if (!user) {
       setSessions([]);
       setCurrentChatId(null);
+      return;
     }
-  }, [user]);
 
-  // Save sessions to localStorage
-  const saveSessions = (newSessions) => {
-    if (user) {
-      const userChatsKey = CHAT_STORAGE.getUserChatsKey(user.id);
-      localStorage.setItem(userChatsKey, JSON.stringify(newSessions));
-      setSessions(newSessions);
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const chats = await getUserChats(user.id);
+      
+      // Backend returns {chats: [...]} not direct array
+      const chatArray = Array.isArray(chats) ? chats : (chats.chats || []);
+      setSessions(chatArray);
+      
+      // Auto-select first chat if none selected
+      if (!currentChatId && chatArray.length > 0) {
+        setCurrentChatId(chatArray[0].id);
+      }
+    } catch (err) {
+      console.error('Error loading chat sessions:', err);
+      setError(err.message);
+      setSessions([]);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const createNewChat = () => {
-    const newChatId = `chat_${Date.now()}`;
-    const newSession = {
-      id: newChatId,
-      title: 'Chat Baru',
-      createdAt: new Date().toISOString(),
-      lastUpdated: new Date().toISOString(),
-      messageCount: 0,
-    };
+  useEffect(() => {
+    loadChatSessions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]); // Only re-run when user ID changes
 
-    const updated = [newSession, ...sessions];
-    saveSessions(updated);
-    setCurrentChatId(newChatId);
+  const createNewChat = async () => {
+    if (!user) return null;
     
-    return newChatId;
+    setError(null);
+    try {
+      const newChat = await createChat(user.id);
+      setSessions(prev => [newChat, ...(Array.isArray(prev) ? prev : [])]);
+      setCurrentChatId(newChat.id);
+      return newChat.id;
+    } catch (err) {
+      console.error('Error creating chat:', err);
+      setError(err.message);
+      return null;
+    }
   };
 
   const selectChat = (chatId) => {
     setCurrentChatId(chatId);
   };
 
-  const deleteChat = (chatId) => {
+  const deleteChatSession = async (chatId) => {
     if (!user) return;
 
-    // Remove chat messages
-    const chatKey = CHAT_STORAGE.getChatMessagesKey(user.id, chatId);
-    localStorage.removeItem(chatKey);
+    setError(null);
+    try {
+      await apiDeleteChat(chatId);
+      
+      // Update local state
+      const updated = (Array.isArray(sessions) ? sessions : []).filter(s => s.id !== chatId);
+      setSessions(updated);
 
-    // Update sessions list
-    const updated = sessions.filter(s => s.id !== chatId);
-    saveSessions(updated);
-
-    // If deleting current chat, create new one
-    if (chatId === currentChatId) {
-      createNewChat();
+      // If deleting current chat
+      if (chatId === currentChatId) {
+        if (updated.length > 0) {
+          setCurrentChatId(updated[0].id);
+        } else {
+          // No chats left, create a new one
+          await createNewChat();
+        }
+      }
+    } catch (err) {
+      console.error('Error deleting chat:', err);
+      setError(err.message);
     }
   };
 
-  const updateChatTitle = (chatId, title) => {
-    const updated = sessions.map(s =>
-      s.id === chatId ? { ...s, title, lastUpdated: new Date().toISOString() } : s
-    );
-    saveSessions(updated);
+  const updateChatTitle = async (chatId, title) => {
+    if (!user) return;
+    
+    setError(null);
+    try {
+      const updatedChat = await apiUpdateChatTitle(chatId, title);
+      setSessions(prev => (Array.isArray(prev) ? prev : []).map(s => s.id === chatId ? updatedChat : s));
+    } catch (err) {
+      console.error('Error updating chat title:', err);
+      setError(err.message);
+    }
   };
 
   const updateChatMessageCount = (chatId, count) => {
-    const updated = sessions.map(s =>
-      s.id === chatId ? { ...s, messageCount: count, lastUpdated: new Date().toISOString() } : s
-    );
-    saveSessions(updated);
+    // Optimistic update - backend will update on message send
+    setSessions(prev => (Array.isArray(prev) ? prev : []).map(s =>
+      s.id === chatId ? { ...s, message_count: count, updated_at: new Date().toISOString() } : s
+    ));
+  };
+
+  const refreshChats = () => {
+    loadChatSessions();
   };
 
   return {
     sessions,
     currentChatId,
+    loading,
+    error,
     createNewChat,
     selectChat,
-    deleteChat,
+    deleteChat: deleteChatSession,
     updateChatTitle,
     updateChatMessageCount,
+    refreshChats,
   };
 };

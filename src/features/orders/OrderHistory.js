@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Package, Clock, CheckCircle, XCircle, Truck, Eye } from 'lucide-react';
-
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+import { getUserOrders } from '../../services/orderService';
+import { formatDateTime } from '../../utils/formatters';
 
 const statusConfig = {
   pending: { label: 'Menunggu Konfirmasi', icon: Clock, color: 'text-yellow-600 bg-yellow-50 border-yellow-200' },
@@ -25,32 +25,13 @@ export default function OrderHistory({ user, onClose }) {
 
   const loadOrders = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/user/${user.id}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-
-      if (!response.ok) throw new Error('Failed to load orders');
-
-      const data = await response.json();
+      const data = await getUserOrders(user.id, localStorage.getItem('token'));
       setOrders(data);
     } catch (error) {
       console.error('Error loading orders:', error);
     } finally {
       setLoading(false);
     }
-  };
-
-  const formatDate = (dateStr) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('id-ID', { 
-      day: 'numeric', 
-      month: 'long', 
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
   };
 
   const OrderDetailModal = ({ order, onClose }) => {
@@ -134,8 +115,8 @@ export default function OrderHistory({ user, onClose }) {
 
             {/* Dates */}
             <div className="text-sm text-slate-600">
-              <p>Dibuat: {formatDate(order.created_at)}</p>
-              <p>Terakhir diupdate: {formatDate(order.updated_at)}</p>
+              <p>Dibuat: {formatDateTime(order.created_at)}</p>
+              <p>Terakhir diupdate: {formatDateTime(order.updated_at)}</p>
             </div>
           </div>
 
@@ -184,7 +165,7 @@ export default function OrderHistory({ user, onClose }) {
                       <div className="flex justify-between items-start mb-3">
                         <div>
                           <p className="font-bold text-slate-900">{order.id}</p>
-                          <p className="text-sm text-slate-600">{formatDate(order.created_at)}</p>
+                          <p className="text-sm text-slate-600">{formatDateTime(order.created_at)}</p>
                         </div>
                         <div className={`px-3 py-1.5 rounded-lg border flex items-center gap-2 ${statusConfig[order.status]?.color || 'text-slate-600 bg-slate-50 border-slate-200'}`}>
                           <StatusIcon size={16} />

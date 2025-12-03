@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Database, Users, ShoppingCart, Package, Terminal, RefreshCw, AlertCircle } from 'lucide-react';
-
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+import { getDebugInfo } from '../../services/adminService';
   
 export default function AdminDashboard({ user }) {
   const navigate = useNavigate();
@@ -16,18 +15,7 @@ export default function AdminDashboard({ user }) {
     setError('');
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/debug/${endpoint}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      const result = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(result.detail || 'Failed to fetch data');
-      }
-
+      const result = await getDebugInfo(endpoint, token);
       setData(result);
     } catch (err) {
       setError(err.message);

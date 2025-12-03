@@ -1,11 +1,12 @@
 // src/components/Products.js
 import React, { useState, useEffect } from 'react';
 import { Filter, ChevronLeft, ChevronRight, X, Search, ShoppingCart, History } from 'lucide-react';
-import Cart from '../Cart/Cart';
-import Checkout from '../Order/Checkout';
-import OrderHistory from '../Order/OrderHistory';
+import Cart from '../cart/Cart';
+import Checkout from '../orders/Checkout';
+import OrderHistory from '../orders/OrderHistory';
 import './Products.css';
-import { REACT_APP_API_BASE_URL } from '../../utils/constants';
+import { getProducts } from '../../services/productService';
+import { formatCurrency } from '../../utils/formatters';
 
 const Products = ({ user }) => {
   const [products, setProducts] = useState([]);
@@ -47,8 +48,7 @@ const Products = ({ user }) => {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch(`${REACT_APP_API_BASE_URL}/products`);
-      const data = await response.json();
+      const data = await getProducts();
       if (data.success) {
         setProducts(data.products);
         setFilteredProducts(data.products);
@@ -218,21 +218,13 @@ const Products = ({ user }) => {
     setTimeout(() => setMessage(''), 3000);
   };
 
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
-    }).format(price);
-  };
-
   const formatPriceRange = (range) => {
     if (range === 'Semua') return 'Semua Harga';
     const [min, max] = range.split('-').map(Number);
     if (max) {
-      return `${formatPrice(min)} - ${formatPrice(max)}`;
+      return `${formatCurrency(min)} - ${formatCurrency(max)}`;
     }
-    return `> ${formatPrice(min)}`;
+    return `> ${formatCurrency(min)}`;
   };
 
   if (loading) {
@@ -510,7 +502,7 @@ const Products = ({ user }) => {
                     <div className="mt-auto pt-4 border-t border-slate-100">
                       <div className="flex items-center justify-between mb-3">
                         <div className="text-xl font-black text-slate-900">
-                          {formatPrice(product.price)}
+                          {formatCurrency(product.price)}
                         </div>
                       </div>
                       

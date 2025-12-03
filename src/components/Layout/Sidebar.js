@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, MessageSquare, ShoppingBag, User, LogOut, ChevronLeft, ChevronRight, Plus, Trash2, LogIn, UserPlus, AlertCircle } from 'lucide-react';
+import { Home, MessageSquare, ShoppingBag, User, LogOut, ChevronLeft, ChevronRight, Plus, Trash2, LogIn, UserPlus, AlertCircle, Edit2, Check, X } from 'lucide-react';
+import { formatRelativeTime } from '../../utils/formatters';
 
-export default function Sidebar({ user, onLogout, isOpen, onToggle, onNewChat, onSelectChat, onDeleteChat, currentChatId }) {
+export default function Sidebar({ user, onLogout, isOpen, onToggle, onNewChat, onSelectChat, onDeleteChat, onUpdateChatTitle, currentChatId, chatSessions = [] }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const [chatSessions, setChatSessions] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [chatToDelete, setChatToDelete] = useState(null);
+  const [editingChatId, setEditingChatId] = useState(null);
+  const [editTitle, setEditTitle] = useState('');
 
   // Determine current page from route
   const getCurrentPage = () => {
@@ -24,69 +26,16 @@ export default function Sidebar({ user, onLogout, isOpen, onToggle, onNewChat, o
     { id: '/products', label: 'Produk', icon: ShoppingBag },
   ];
 
-  // Load chat sessions when on AI Chat page
-  useEffect(() => {
-    if (currentPage === 'ai-chat' && user) {
-      const loadChatSessions = () => {
-        const userChatsKey = `user_${user.id}_chats`;
-        const saved = localStorage.getItem(userChatsKey);
-        
-        if (saved) {
-          try {
-            const sessions = JSON.parse(saved);
-            setChatSessions(sessions);
-          } catch (e) {
-            console.error('Failed to load chat sessions:', e);
-          }
-        }
-      };
-
-      loadChatSessions();
-      
-      // Refresh every 2 seconds when on AI Chat page
-      const interval = setInterval(loadChatSessions, 2000);
-      return () => clearInterval(interval);
-    }
-  }, [currentPage, user]);
-
-  const formatDate = (dateStr) => {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return 'Baru';
-    if (diffMins < 60) return `${diffMins}m`;
-    if (diffHours < 24) return `${diffHours}h`;
-    if (diffDays < 7) return `${diffDays}d`;
-    return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
-  };
-
   const handleDeleteChat = (chatId, e) => {
     e.stopPropagation();
+    e.preventDefault();
     setChatToDelete(chatId);
     setShowDeleteModal(true);
   };
 
   const confirmDelete = () => {
-    if (chatToDelete && user) {
-      const chatKey = `user_${user.id}_chat_${chatToDelete}`;
-      localStorage.removeItem(chatKey);
-
-      const userChatsKey = `user_${user.id}_chats`;
-      const saved = localStorage.getItem(userChatsKey);
-      if (saved) {
-        const sessions = JSON.parse(saved);
-        const updated = sessions.filter(s => s.id !== chatToDelete);
-        localStorage.setItem(userChatsKey, JSON.stringify(updated));
-        setChatSessions(updated);
-      }
-
-      if (onDeleteChat) {
-        onDeleteChat(chatToDelete);
-      }
+    if (chatToDelete && onDeleteChat) {
+      onDeleteChat(chatToDelete);
     }
     
     setShowDeleteModal(false);
@@ -98,31 +47,76 @@ export default function Sidebar({ user, onLogout, isOpen, onToggle, onNewChat, o
     setChatToDelete(null);
   };
 
+  const handleEditClick = (chatId, currentTitle, e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setEditingChatId(chatId);
+    setEditTitle(currentTitle);
+  };
+
+  const handleSaveTitle = async (chatId, e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    
+    if (editTitle.trim() && onUpdateChatTitle) {
+      await onUpdateChatTitle(chatId, editTitle.trim());
+    }
+    
+    setEditingChatId(null);
+    setEditTitle('');
+  };
+
+  const handleCancelEdit = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setEditingChatId(null);
+    setEditTitle('');
+  };
+
   return (
     <>
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 lg:hidden"
+          onClick={onToggle}
+        />
+      )}
+
       {/* Sidebar */}
       <div className={`fixed left-0 top-0 h-full bg-gradient-to-b from-white to-slate-50/50 backdrop-blur-sm shadow-2xl z-40 flex flex-col border-r border-slate-200/50 transition-all duration-300 ${
-        isOpen ? 'w-64' : 'w-16'
+        isOpen ? 'w-64' : 'w-20 -translate-x-full lg:translate-x-0'
       }`}>
       {/* Logo/Brand with Toggle */}
       <div className="p-4 bg-gradient-to-br from-emerald-50/50 to-teal-50/30 border-b border-slate-200/50 flex items-center justify-between">
-        <div className="flex items-center gap-3 overflow-hidden">
-          <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-3 rounded-xl shadow-lg hover:shadow-xl transition-shadow flex-shrink-0">
-            <MessageSquare size={24} className="text-white" />
-          </div>
-          <div className={`transition-all duration-300 ${isOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0'}`}>
-            <h1 className="text-xl font-black bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent whitespace-nowrap">
-              SkinCare AI
-            </h1>
-            <p className="text-xs text-slate-500 font-semibold tracking-wide whitespace-nowrap">Deteksi & Konsultasi</p>
-          </div>
-        </div>
-        <button
-          onClick={onToggle}
-          className={`p-2 hover:bg-slate-200/50 rounded-lg transition-all text-slate-600 hover:text-slate-900 flex-shrink-0 ${isOpen ? '' : 'ml-auto'}`}
-        >
-          {isOpen ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
-        </button>
+        {isOpen ? (
+          <>
+            <div className="flex items-center gap-3 overflow-hidden">
+              <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-3 rounded-xl shadow-lg hover:shadow-xl transition-shadow flex-shrink-0">
+                <MessageSquare size={24} className="text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-black bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent whitespace-nowrap">
+                  SkinCare AI
+                </h1>
+                <p className="text-xs text-slate-500 font-semibold tracking-wide whitespace-nowrap">Deteksi & Konsultasi</p>
+              </div>
+            </div>
+            <button
+              onClick={onToggle}
+              className="p-2 hover:bg-slate-200/50 rounded-lg transition-all text-slate-600 hover:text-slate-900 flex-shrink-0"
+            >
+              <ChevronLeft size={18} />
+            </button>
+          </>
+        ) : (
+          <button
+            onClick={onToggle}
+            className="w-full flex items-center justify-center p-2 hover:bg-slate-200/50 rounded-lg transition-all text-slate-600 hover:text-slate-900"
+          >
+            <ChevronRight size={18} />
+          </button>
+        )}
       </div>
 
       {/* Main Content Area - Navigation + Chat History */}
@@ -170,7 +164,7 @@ export default function Sidebar({ user, onLogout, isOpen, onToggle, onNewChat, o
 
             {/* Chat Sessions List */}
             <div className="flex-1 overflow-y-auto px-3 pb-4">
-              {chatSessions.length === 0 ? (
+              {!chatSessions || !Array.isArray(chatSessions) || chatSessions.length === 0 ? (
                 <div className="p-8 text-center">
                   <div className="bg-slate-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
                     <MessageSquare size={20} className="text-slate-400" />
@@ -180,34 +174,96 @@ export default function Sidebar({ user, onLogout, isOpen, onToggle, onNewChat, o
               ) : (
                 <div className="space-y-1.5">
                   {chatSessions.map((session) => (
-                    <button
+                    <div
                       key={session.id}
-                      onClick={() => onSelectChat && onSelectChat(session.id)}
-                      className={`w-full text-left p-3 rounded-xl transition-all duration-200 group relative ${
+                      className={`relative rounded-xl transition-all duration-200 group ${
                         currentChatId === session.id
                           ? 'bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-300 shadow-md'
                           : 'bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 hover:shadow-md'
                       }`}
                     >
-                      <div className="pr-7">
-                        <p className={`font-semibold text-sm line-clamp-1 mb-1 ${
-                          currentChatId === session.id ? 'text-emerald-700' : 'text-slate-800'
-                        }`}>
-                          {session.title}
-                        </p>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[11px] font-medium text-slate-400">
-                            {formatDate(session.lastUpdated)}
-                          </span>
+                      <div
+                        onClick={() => onSelectChat && onSelectChat(session.id)}
+                        className="w-full text-left p-3 rounded-xl cursor-pointer"
+                      >
+                        <div className={editingChatId === session.id ? "pr-3" : "pr-16"}>
+                          {editingChatId === session.id ? (
+                            <div className="mb-2" onClick={(e) => e.stopPropagation()}>
+                              <input
+                                type="text"
+                                value={editTitle}
+                                onChange={(e) => setEditTitle(e.target.value)}
+                                onKeyPress={(e) => {
+                                  if (e.key === 'Enter') handleSaveTitle(session.id, e);
+                                  if (e.key === 'Escape') handleCancelEdit(e);
+                                }}
+                                className="w-full px-2 py-1.5 text-sm border border-emerald-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-400 mb-2"
+                                autoFocus
+                              />
+                              <div className="flex gap-1.5 justify-end">
+                                <button
+                                  onClick={(e) => handleSaveTitle(session.id, e)}
+                                  className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
+                                >
+                                  <Check size={12} />
+                                  Simpan
+                                </button>
+                                <button
+                                  onClick={handleCancelEdit}
+                                  className="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
+                                >
+                                  <X size={12} />
+                                  Batal
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <p className={`font-semibold text-sm line-clamp-1 mb-1 ${
+                                currentChatId === session.id ? 'text-emerald-700' : 'text-slate-800'
+                              }`}>
+                                {session.title}
+                              </p>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[11px] font-medium text-slate-400">
+                                  {formatRelativeTime(session.updated_at || session.lastUpdated, true)}
+                                </span>
+                                {(session.message_count || session.messageCount || 0) > 0 && (
+                                  <>
+                                    <span className="text-slate-300">•</span>
+                                    <span className={`text-[11px] font-bold ${
+                                      currentChatId === session.id ? 'text-emerald-600' : 'text-slate-500'
+                                    }`}>
+                                      {session.message_count || session.messageCount} pesan
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                            </>
+                          )}
                         </div>
                       </div>
-                      <button
-                        onClick={(e) => handleDeleteChat(session.id, e)}
-                        className="absolute top-2.5 right-2 opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-100 rounded-lg transition-all text-red-500 hover:text-red-600"
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    </button>
+                      {editingChatId !== session.id && (
+                        <div className="absolute top-2.5 right-2 flex gap-1 opacity-0 group-hover:opacity-100 z-10">
+                          <button
+                            type="button"
+                            onClick={(e) => handleEditClick(session.id, session.title, e)}
+                            className="p-1.5 hover:bg-blue-100 rounded-lg transition-all text-blue-600 hover:text-blue-700"
+                            title="Edit title"
+                          >
+                            <Edit2 size={13} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => handleDeleteChat(session.id, e)}
+                            className="p-1.5 hover:bg-red-100 rounded-lg transition-all text-red-500 hover:text-red-600"
+                            title="Delete chat"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   ))}
                 </div>
               )}

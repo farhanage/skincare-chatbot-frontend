@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MessageCircle, Plus, Trash2, X } from 'lucide-react';
+import { formatRelativeTime } from '../../utils/formatters';
 
 export default function ChatSidebar({ 
   isOpen, 
@@ -49,21 +50,6 @@ export default function ChatSidebar({
       setChatSessions(prev => prev.filter(s => s.id !== chatId));
       onDeleteChat(chatId);
     }
-  };
-
-  const formatDate = (dateStr) => {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return 'Baru saja';
-    if (diffMins < 60) return `${diffMins} menit lalu`;
-    if (diffHours < 24) return `${diffHours} jam lalu`;
-    if (diffDays < 7) return `${diffDays} hari lalu`;
-    return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
   };
 
   const getPreviewText = (messages) => {
@@ -149,7 +135,7 @@ export default function ChatSidebar({
                         {getPreviewText(session.messages)}
                       </p>
                       <p className="text-xs text-slate-400 mt-2">
-                        {formatDate(session.lastUpdated)}
+                        {formatRelativeTime(session.lastUpdated, false)}
                       </p>
                     </div>
                     <button

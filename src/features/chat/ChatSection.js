@@ -336,6 +336,28 @@ export default function ChatSection({ diseaseInfo }) {
 
           {/* Input Area */}
           <div className="p-4 bg-white border-t border-slate-200 rounded-b-2xl">
+            {/* Disease Info Banner */}
+            {diseaseInfo && diseaseInfo.disease && (
+              <div className="mb-3 p-3 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl">
+                <div className="flex items-start gap-2">
+                  <Bot size={16} className="text-emerald-600 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-emerald-800 mb-1">
+                      Informasi Deteksi Terkirim ke AI:
+                    </p>
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm font-black text-slate-900 truncate">
+                        {diseaseInfo.disease}
+                      </p>
+                      <span className="text-xs font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full whitespace-nowrap">
+                        {(diseaseInfo.confidence * 100).toFixed(1)}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             <div className="flex gap-2">
               <input
                 type="text"

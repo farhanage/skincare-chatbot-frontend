@@ -1,5 +1,5 @@
 import React from 'react';
-import { Register } from '../components/Auth';
+import { Register } from '../features/auth';
 
 export default function RegisterPage() {
   return <Register />;

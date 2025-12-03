@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Upload, Camera, Activity, Sparkles, RotateCcw, Image as ImageIcon, ChevronRight } from 'lucide-react';
+import { Upload, Camera, Activity, Sparkles, RotateCcw, Image as ImageIcon, ChevronRight, MessageSquare } from 'lucide-react';
 import { REACT_APP_VIT_INFERENCE_URL } from '../../utils';
 
 export default function UploadSection() {
@@ -163,27 +163,27 @@ export default function UploadSection() {
   return (
     <div className="bg-white rounded-3xl shadow-xl border border-slate-200 relative overflow-hidden hover:shadow-2xl transition-all duration-300">
       {/* Content Container */}
-      <div className="relative p-8 lg:p-12">
+      <div className="relative p-4 sm:p-6 lg:p-12">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <div className="bg-gradient-to-br from-emerald-500 to-teal-500 p-4 rounded-2xl shadow-lg">
-              <Camera className="text-white" size={32} />
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="bg-gradient-to-br from-emerald-500 to-teal-500 p-3 sm:p-4 rounded-2xl shadow-lg">
+              <Camera className="text-white" size={24} />
             </div>
             <div>
-              <h2 className="text-4xl font-black text-slate-900 mb-1">
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 mb-1">
                 Deteksi Kulit
               </h2>
-              <p className="text-slate-600 text-sm font-medium">Upload & Analisis dengan AI</p>
+              <p className="text-slate-600 text-xs sm:text-sm font-medium">Upload & Analisis dengan AI</p>
             </div>
           </div>
           
           {preview && !loading && (
             <button
               onClick={handleReset}
-              className="flex items-center gap-2 px-5 py-3 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl text-rose-600 hover:scale-105 transition-all font-semibold shadow-md"
+              className="flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl text-rose-600 hover:scale-105 transition-all font-semibold shadow-md text-sm"
             >
-              <RotateCcw size={18} />
+              <RotateCcw size={16} />
               Reset
             </button>
           )}
@@ -194,7 +194,7 @@ export default function UploadSection() {
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          className={`border-2 border-dashed rounded-3xl p-10 text-center mb-8 transition-all duration-300 ${
+          className={`border-2 border-dashed rounded-2xl sm:rounded-3xl p-6 sm:p-10 text-center mb-6 sm:mb-8 transition-all duration-300 ${
             isDragging
               ? 'border-emerald-500 bg-emerald-50 scale-[1.02] shadow-xl'
               : preview
@@ -205,11 +205,11 @@ export default function UploadSection() {
           {preview ? (
             <div className="space-y-4">
               {/* Image Preview with Face Guide Overlay */}
-              <div className="relative inline-block">
+              <div className="relative inline-block max-w-full">
                 <img 
                   src={preview} 
                   alt="Preview" 
-                  className="max-h-96 mx-auto rounded-2xl shadow-xl object-cover border-2 border-slate-200" 
+                  className="max-h-64 sm:max-h-80 lg:max-h-96 w-full object-contain mx-auto rounded-xl sm:rounded-2xl shadow-xl border-2 border-slate-200" 
                 />
                 
                 {/* Face Detection Guide Overlay */}
@@ -238,9 +238,9 @@ export default function UploadSection() {
                 )}
               </div>
               
-              <div className="flex gap-3 justify-center">
-                <label className="cursor-pointer inline-flex items-center gap-2 px-5 py-3 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl text-emerald-600 font-semibold transition-all shadow-md hover:shadow-lg">
-                  <Upload size={20} />
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <label className="cursor-pointer inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl text-emerald-600 font-semibold transition-all shadow-md hover:shadow-lg text-sm">
+                  <Upload size={18} />
                   Ganti Foto
                   <input 
                     ref={fileInputRef}
@@ -254,26 +254,26 @@ export default function UploadSection() {
             </div>
           ) : (
             <label className="cursor-pointer block">
-              <div className="relative inline-block mb-6">
-                <div className="bg-gradient-to-br from-emerald-500 to-teal-500 p-6 rounded-full inline-block shadow-lg">
+              <div className="relative inline-block mb-4 sm:mb-6">
+                <div className="bg-gradient-to-br from-emerald-500 to-teal-500 p-4 sm:p-6 rounded-full inline-block shadow-lg">
                   {isDragging ? (
-                    <ImageIcon className="text-white animate-bounce" size={80} />
+                    <ImageIcon className="text-white animate-bounce" size={48} />
                   ) : (
-                    <Upload className="text-white" size={80} />
+                    <Upload className="text-white" size={48} />
                   )}
                 </div>
               </div>
               
-              <div className="space-y-3">
-                <p className="text-slate-900 text-xl font-black">
+              <div className="space-y-2 sm:space-y-3">
+                <p className="text-slate-900 text-base sm:text-xl font-black px-4">
                   {isDragging ? 'Drop gambar di sini' : 'Drag & Drop gambar atau klik untuk upload'}
                 </p>
-                <p className="text-sm text-slate-600 font-medium">PNG, JPG, JPEG (max. 10MB)</p>
+                <p className="text-xs sm:text-sm text-slate-600 font-medium">PNG, JPG, JPEG (max. 10MB)</p>
                 
                 {/* Upload Tips */}
-                <div className="mt-6 p-4 bg-white border border-emerald-200 rounded-xl shadow-md">
-                  <p className="text-slate-900 font-bold mb-2">Tips untuk hasil terbaik:</p>
-                  <ul className="text-sm text-slate-700 space-y-1 text-left font-medium">
+                <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-white border border-emerald-200 rounded-xl shadow-md mx-2 sm:mx-0">
+                  <p className="text-slate-900 font-bold mb-2 text-sm">Tips untuk hasil terbaik:</p>
+                  <ul className="text-xs sm:text-sm text-slate-700 space-y-1 text-left font-medium">
                     <li>✓ Pastikan area kulit terlihat jelas</li>
                     <li>✓ Gunakan pencahayaan yang cukup</li>
                     <li>✓ Posisikan wajah di tengah frame</li>
@@ -298,13 +298,23 @@ export default function UploadSection() {
           <button
             onClick={handlePredict}
             disabled={loading}
-            className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-5 rounded-xl font-bold hover:from-emerald-600 hover:to-teal-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all shadow-lg hover:scale-[1.02] text-lg"
+            className={`w-full text-white py-5 rounded-xl font-bold transition-all shadow-lg text-lg overflow-hidden relative ${
+              loading 
+                ? 'bg-gray-400 cursor-not-allowed' 
+                : 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 hover:scale-[1.02]'
+            }`}
           >
             {loading ? (
-              <span className="flex items-center justify-center gap-3">
-                <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
-                Menganalisis Kondisi Kulit...
-              </span>
+              <>
+                {/* Moving loading bar */}
+                <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-600 overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-[shimmer_1.5s_ease-in-out_infinite]"></div>
+                </div>
+                <span className="relative z-10 flex items-center justify-center gap-3">
+                  <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Menganalisis Kondisi Kulit...
+                </span>
+              </>
             ) : (
               <span className="flex items-center justify-center gap-3">
                 <Activity size={24} />
@@ -367,6 +377,23 @@ export default function UploadSection() {
 
             {/* Action Buttons */}
             <div className="mt-6 space-y-3">
+              {/* Chat with AI Button - Navigate to chat with context */}
+              <button
+                onClick={() => {
+                  // Save disease context to sessionStorage for chat
+                  sessionStorage.setItem('chatContext', JSON.stringify({
+                    disease: prediction.disease,
+                    confidence: prediction.confidence,
+                    createNewChat: true // Flag to create new chat
+                  }));
+                  navigate('/chat');
+                }}
+                className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-4 rounded-xl font-bold hover:from-emerald-600 hover:to-teal-700 transition-all shadow-lg hover:scale-[1.02] flex items-center justify-center gap-3 text-lg"
+              >
+                <MessageSquare size={24} />
+                Konsultasi dengan AI
+              </button>
+
               {/* View Products Button - Navigate (persistence will keep state) */}
               <button
                 onClick={() => navigate('/products')}
@@ -386,9 +413,9 @@ export default function UploadSection() {
             </div>
 
             {/* CTA */}
-            <div className="mt-4 p-4 bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200 rounded-xl">
-              <p className="text-cyan-800 text-sm text-center font-semibold">
-                Ingin konsultasi lebih lanjut? Klik tombol chat di pojok kanan bawah!
+            <div className="mt-4 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl">
+              <p className="text-emerald-800 text-sm text-center font-semibold">
+                💡 Klik tombol "Konsultasi dengan AI" untuk mendapatkan rekomendasi perawatan yang tepat!
               </p>
             </div>
           </div>
