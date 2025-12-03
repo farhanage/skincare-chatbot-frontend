@@ -27,5 +27,4 @@ COPY --from=build /app/build /usr/share/nginx/html
 # Expose port
 EXPOSE $PORT
 
-# Start nginx with dynamic port
-CMD /bin/sh -c "envsubst '\$PORT' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
+# Note: The actual CMD is in heroku.yml
