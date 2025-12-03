@@ -12,6 +12,12 @@ RUN npm install
 # Copy source code
 COPY . .
 
+# Build args for environment variables
+ARG REACT_APP_API_BASE_URL
+ARG REACT_APP_VIT_INFERENCE_URL
+ENV REACT_APP_API_BASE_URL=$REACT_APP_API_BASE_URL
+ENV REACT_APP_VIT_INFERENCE_URL=$REACT_APP_VIT_INFERENCE_URL
+
 # Build the app
 RUN npm run build
 

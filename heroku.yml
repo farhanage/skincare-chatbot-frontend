@@ -1,5 +1,8 @@
 build:
   docker:
     web: Dockerfile
+  config:
+    REACT_APP_API_BASE_URL: https://skincare-chatbot-be-62ab506d0393.herokuapp.com/api
+    REACT_APP_VIT_INFERENCE_URL: https://farhanage-skincare-disease-vit.hf.space/api
 run:
   web: /bin/sh -c "envsubst '\$PORT' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
