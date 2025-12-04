@@ -14,7 +14,6 @@ COPY . .
 
 # Set production environment variables directly
 ENV REACT_APP_API_BASE_URL=https://skincare-api.farhanage.site/api
-ENV REACT_APP_VIT_INFERENCE_URL=https://farhanage-skincare-disease-vit.hf.space/api
 
 # Build the app
 RUN npm run build

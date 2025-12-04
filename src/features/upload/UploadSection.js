@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Upload, Camera, Activity, Sparkles, RotateCcw, Image as ImageIcon, ChevronRight, MessageSquare } from 'lucide-react';
-import { REACT_APP_VIT_INFERENCE_URL } from '../../utils';
+import { REACT_APP_API_BASE_URL } from '../../utils';
 
 export default function UploadSection() {
   const navigate = useNavigate();
@@ -107,7 +107,7 @@ export default function UploadSection() {
       const formData = new FormData();
       formData.append('file', fileToUpload);
       
-      const apiResponse = await fetch(`${REACT_APP_VIT_INFERENCE_URL}/predict`, {
+      const apiResponse = await fetch(`${REACT_APP_API_BASE_URL}/predict`, {
         method: 'POST',
         body: formData,
       });
