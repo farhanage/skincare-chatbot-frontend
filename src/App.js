@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { HomePage, LoginPage, RegisterPage, ProductsPage, ChatPage, AdminPage } from './pages';
+import { HomePage, LoginPage, RegisterPage, ProductsPage, ProductDetailPage, ChatPage, AdminPage } from './pages';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -56,6 +56,7 @@ function App() {
         <Route path="/" element={<HomePage user={user} onLogout={handleLogout} />} />
         
         <Route path="/products" element={<ProductsPage user={user} onLogout={handleLogout} />} />
+        <Route path="/products/:id" element={<ProductDetailPage user={user} onLogout={handleLogout} />} />
         
         {/* Chat - accessible to guests and logged-in users */}
         <Route path="/chat" element={<ChatPage user={user} onLogout={handleLogout} />} />

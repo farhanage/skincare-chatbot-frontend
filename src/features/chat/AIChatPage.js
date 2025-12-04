@@ -1,8 +1,11 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Send, Bot, User, X, Trash2 } from 'lucide-react';
 import { getChatMessages, sendMessage } from '../../services/chatService';
+import { trackInteraction } from '../../services/interactionService';
 
 export default function AIChatPage({ user, currentChatId }) {
+  const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -305,6 +308,14 @@ export default function AIChatPage({ user, currentChatId }) {
     }
   };
 
+  const handleProductClick = (productId) => {
+    // Track click for logged-in users
+    if (user) {
+      trackInteraction(productId, 'click', 1.0);
+    }
+    navigate(`/products/${productId}`);
+  };
+
   return (
     <div className="flex h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
       {/* Main Chat Area */}
@@ -383,8 +394,12 @@ export default function AIChatPage({ user, currentChatId }) {
                     <div className="mt-3 sm:mt-4 space-y-2">
                       <p className="text-xs sm:text-sm font-black text-slate-800 mb-2">💚 Produk yang direkomendasikan:</p>
                       {msg.products.map((product, idx) => (
-                        <div key={idx} className="bg-gradient-to-br from-slate-50 to-emerald-50/30 p-2 sm:p-3 rounded-xl border border-emerald-200 hover:shadow-md transition-all duration-200">
-                          <p className="font-bold text-xs sm:text-sm text-slate-900">{product.name}</p>
+                        <div 
+                          key={idx} 
+                          onClick={() => handleProductClick(product.id)}
+                          className="bg-gradient-to-br from-slate-50 to-emerald-50/30 p-2 sm:p-3 rounded-xl border border-emerald-200 hover:shadow-md hover:border-emerald-300 transition-all duration-200 cursor-pointer group"
+                        >
+                          <p className="font-bold text-xs sm:text-sm text-slate-900 group-hover:text-emerald-600 transition-colors">{product.name}</p>
                           <p className="text-xs sm:text-sm text-emerald-600 font-black mt-1">Rp {product.price?.toLocaleString('id-ID')}</p>
                         </div>
                       ))}

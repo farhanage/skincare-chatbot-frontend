@@ -1,14 +1,17 @@
 // src/components/Products.js
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Filter, ChevronLeft, ChevronRight, X, Search, ShoppingCart, History } from 'lucide-react';
 import Cart from '../cart/Cart';
 import Checkout from '../orders/Checkout';
 import OrderHistory from '../orders/OrderHistory';
 import './Products.css';
 import { getProducts } from '../../services/productService';
+import { trackInteraction } from '../../services/interactionService';
 import { formatCurrency } from '../../utils/formatters';
 
 const Products = ({ user }) => {
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [cart, setCart] = useState([]);
@@ -70,7 +73,11 @@ const Products = ({ user }) => {
         setCart(JSON.parse(savedCart));
       } catch (e) {
         console.error('Failed to load cart:', e);
+        setCart([]);
       }
+    } else {
+      // If no cart in localStorage, set to empty array
+      setCart([]);
     }
   };
 
@@ -136,6 +143,14 @@ const Products = ({ user }) => {
   const currentProducts = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
+  const handleProductClick = (productId) => {
+    // Track click for logged-in users
+    if (user) {
+      trackInteraction(productId, 'click', 1.0);
+    }
+    navigate(`/products/${productId}`);
+  };
+
   const paginate = (pageNumber) => {
     setCurrentPage(pageNumber);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -179,6 +194,11 @@ const Products = ({ user }) => {
       // Save to localStorage
       localStorage.setItem(cartKey, JSON.stringify(currentCart));
       setCart(currentCart);
+      
+      // Track add to cart interaction
+      if (user) {
+        trackInteraction(productId, 'add_to_cart', 2.0);
+      }
     } catch (err) {
       showMessage('✗ Gagal menambahkan ke keranjang');
     }
@@ -466,7 +486,8 @@ const Products = ({ user }) => {
               {currentProducts.map((product) => (
                 <div
                   key={product.id}
-                  className="group bg-white rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border-2 border-slate-100 hover:border-emerald-200"
+                  onClick={() => handleProductClick(product.id)}
+                  className="group bg-white rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border-2 border-slate-100 hover:border-emerald-200 cursor-pointer"
                 >
                   <div className="p-6 flex flex-col h-full">
                     {/* Category Badge */}
@@ -508,14 +529,20 @@ const Products = ({ user }) => {
                       
                       <div className="flex gap-2">
                         <button
-                          onClick={() => addToCart(product.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            addToCart(product.id);
+                          }}
                           className="flex-1 bg-white border-2 border-emerald-500 text-emerald-600 px-3 py-3 rounded-xl transition-all duration-200 font-bold hover:bg-emerald-50 flex items-center justify-center gap-1.5 transform hover:scale-[1.02] active:scale-[0.98]"
                         >
                           <ShoppingCart size={16} />
                           <span className="text-sm">Keranjang</span>
                         </button>
                         <button
-                          onClick={() => buyNow(product.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            buyNow(product.id);
+                          }}
                           className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-3 py-3 rounded-xl transition-all duration-200 font-bold shadow-md hover:shadow-lg transform hover:scale-[1.02] active:scale-[0.98]"
                         >
                           <span className="text-sm">Beli</span>
@@ -635,7 +662,10 @@ const Products = ({ user }) => {
       {showCart && user && (
         <Cart
           user={user}
-          onClose={() => setShowCart(false)}
+          onClose={() => {
+            setShowCart(false);
+            fetchCart(); // Refresh cart when closing to update badge
+          }}
           onCheckout={(items, total) => {
             setCheckoutData({ items, total, fromCart: true }); // Mark as from cart
             setShowCart(false);

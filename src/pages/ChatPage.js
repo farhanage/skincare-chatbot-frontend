@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Sidebar } from '../components/Layout';
 import { AIChatPage } from '../features/chat';
 import { useChat } from '../hooks/useChat';
@@ -18,21 +18,8 @@ export default function ChatPage({ user, onLogout }) {
     updateChatTitle
   } = useChat(user);
 
-  // Check for disease context and create new chat if needed
-  useEffect(() => {
-    const contextData = sessionStorage.getItem('chatContext');
-    if (contextData) {
-      try {
-        const context = JSON.parse(contextData);
-        if (context.createNewChat) {
-          // Create new chat when coming from disease detection
-          createNewChat();
-        }
-      } catch (e) {
-        console.error('Failed to parse chat context:', e);
-      }
-    }
-  }, []); // Run only once on mount
+  // Note: Chat context handling is done in AIChatPage component
+  // No need to create new chat here as it will be handled automatically
 
   return (
     <div className="flex h-screen overflow-hidden">
