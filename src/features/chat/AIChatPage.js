@@ -87,6 +87,11 @@ export default function AIChatPage({ user, currentChatId }) {
         if (!response.ok) throw new Error('Failed to get response');
         const data = await response.json();
 
+        // Extract response text - handle both string and object formats
+        const responseText = typeof data.response === 'string' 
+          ? data.response 
+          : (data.response?.text || data.text || JSON.stringify(data.response || data));
+
         const newMessages = [
           {
             id: `user_${Date.now()}`,
@@ -97,10 +102,10 @@ export default function AIChatPage({ user, currentChatId }) {
           },
           {
             id: `bot_${Date.now()}`,
-            text: data.response,
+            text: responseText,
             isBot: true,
             timestamp: new Date(),
-            products: []
+            products: data.products || data.response?.products || []
           }
         ];
 
@@ -206,6 +211,11 @@ export default function AIChatPage({ user, currentChatId }) {
         if (!response.ok) throw new Error('Failed to get response');
         const data = await response.json();
 
+        // Extract response text - handle both string and object formats
+        const responseText = typeof data.response === 'string' 
+          ? data.response 
+          : (data.response?.text || data.text || JSON.stringify(data.response || data));
+
         // Create messages for guest mode
         const userMsg = {
           id: `user_${Date.now()}`,
@@ -217,10 +227,10 @@ export default function AIChatPage({ user, currentChatId }) {
 
         const botMsg = {
           id: `bot_${Date.now()}`,
-          text: data.response,
+          text: responseText,
           isBot: true,
           timestamp: new Date(),
-          products: []
+          products: data.products || data.response?.products || []
         };
 
         // Update messages and save to localStorage
