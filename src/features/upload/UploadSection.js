@@ -116,10 +116,17 @@ export default function UploadSection() {
       
       const result = await apiResponse.json();
       
+      // Handle nested response structure: result.prediction.predictions or result.predictions
+      const predictions = result.prediction?.predictions || result.predictions;
+      
+      if (!predictions || !predictions.best) {
+        throw new Error('Invalid prediction response format');
+      }
+      
       const transformedResult = {
-        disease: result.predictions.best.label,
-        confidence: result.predictions.best.score,
-        all_predictions: result.predictions.topk.reduce((acc, item) => {
+        disease: predictions.best.label,
+        confidence: predictions.best.score,
+        all_predictions: predictions.topk.reduce((acc, item) => {
           acc[item.label] = item.score;
           return acc;
         }, {})
