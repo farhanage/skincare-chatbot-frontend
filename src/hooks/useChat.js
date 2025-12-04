@@ -3,7 +3,8 @@ import { getUserChats, createChat, deleteChat as apiDeleteChat, updateChatTitle 
 
 /**
  * Custom hook for chat management with backend API
- * @param {object} user - Current user
+ * For guest users, creates a single temporary chat session
+ * @param {object} user - Current user (null for guests)
  * @returns {object} Chat state and methods
  */
 export const useChat = (user) => {
@@ -12,11 +13,19 @@ export const useChat = (user) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Load chat sessions from backend
+  // Load chat sessions from backend or create guest session
   const loadChatSessions = async () => {
     if (!user) {
-      setSessions([]);
-      setCurrentChatId(null);
+      // Guest mode: single temporary chat session
+      const guestSession = {
+        id: 'guest-chat',
+        title: 'Guest Chat',
+        message_count: 0,
+        created_at: new Date().toISOString(),
+        isGuest: true
+      };
+      setSessions([guestSession]);
+      setCurrentChatId('guest-chat');
       return;
     }
 
@@ -46,10 +55,13 @@ export const useChat = (user) => {
   useEffect(() => {
     loadChatSessions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]); // Only re-run when user ID changes
+  }, [user?.id]); // Re-run when user ID changes (including null for guests)
 
   const createNewChat = async () => {
-    if (!user) return null;
+    if (!user) {
+      // Guest can't create multiple chats, just use existing guest chat
+      return 'guest-chat';
+    }
     
     setError(null);
     try {
@@ -69,7 +81,10 @@ export const useChat = (user) => {
   };
 
   const deleteChatSession = async (chatId) => {
-    if (!user) return;
+    if (!user) {
+      // Guests can't delete chats
+      return;
+    }
 
     setError(null);
     try {

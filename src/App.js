@@ -57,11 +57,8 @@ function App() {
         
         <Route path="/products" element={<ProductsPage user={user} onLogout={handleLogout} />} />
         
-        <Route path="/chat" element={
-          <ProtectedRoute>
-            <ChatPage user={user} onLogout={handleLogout} />
-          </ProtectedRoute>
-        } />
+        {/* Chat - accessible to guests and logged-in users */}
+        <Route path="/chat" element={<ChatPage user={user} onLogout={handleLogout} />} />
         
         <Route path="/admin" element={
           <ProtectedRoute requireAdmin>

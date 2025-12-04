@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, X } from 'lucide-react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { Send, Bot, User, X, Trash2 } from 'lucide-react';
 import { getChatMessages, sendMessage } from '../../services/chatService';
 
 export default function AIChatPage({ user, currentChatId }) {
@@ -12,27 +12,46 @@ export default function AIChatPage({ user, currentChatId }) {
   const [hasCheckedContext, setHasCheckedContext] = useState(false);
   const [diseaseContext, setDiseaseContext] = useState(null);
 
-  // Load chat messages from backend
+  // Guest mode: Load/save messages from localStorage
+  const isGuestMode = !user || currentChatId === 'guest-chat';
+  const GUEST_MESSAGES_KEY = 'guest_chat_messages';
+
+  // Load chat messages from backend or localStorage (guest)
   useEffect(() => {
-    if (!currentChatId || !user) return;
+    if (!currentChatId) return;
     
     const loadMessages = async () => {
       setLoadingMessages(true);
       setError(null);
       
       try {
-        const data = await getChatMessages(currentChatId, { limit: 100, order: 'asc' });
-        
-        // Transform backend messages to UI format
-        const transformedMessages = data.messages.map(msg => ({
-          id: msg.id,
-          text: msg.text,
-          isBot: msg.is_bot,
-          timestamp: new Date(msg.timestamp),
-          products: msg.products || []
-        }));
-        
-        setMessages(transformedMessages);
+        if (isGuestMode) {
+          // Guest mode: load from localStorage
+          const savedMessages = localStorage.getItem(GUEST_MESSAGES_KEY);
+          if (savedMessages) {
+            const parsed = JSON.parse(savedMessages);
+            setMessages(parsed.map(msg => ({
+              ...msg,
+              timestamp: new Date(msg.timestamp)
+            })));
+          } else {
+            setMessages([]);
+          }
+        } else {
+          // Logged-in user: load from backend
+          const data = await getChatMessages(currentChatId, { limit: 100, order: 'asc' });
+          
+          // Transform backend messages to UI format
+          const transformedMessages = data.messages.map(msg => ({
+            id: msg.id,
+            text: msg.text,
+            isBot: msg.is_bot,
+            timestamp: new Date(msg.timestamp),
+            products: msg.products || []
+          }));
+          
+          setMessages(transformedMessages);
+        }
       } catch (err) {
         console.error('Failed to load messages:', err);
         setError(err.message);
@@ -45,11 +64,84 @@ export default function AIChatPage({ user, currentChatId }) {
     loadMessages();
     // Reset hasCheckedContext when loading a new chat
     setHasCheckedContext(false);
-  }, [currentChatId, user]);
+  }, [currentChatId, isGuestMode]);
+
+  const handleAutoSendWithDiseaseContext = useCallback(async (disease, confidence) => {
+    const contextMessage = `Saya baru saja melakukan deteksi kulit dan hasilnya adalah ${disease} dengan tingkat kepercayaan ${(confidence * 100).toFixed(1)}%. Bisakah Anda memberikan informasi lebih lanjut tentang kondisi ini dan rekomendasi perawatan yang tepat?`;
+    
+    setLoading(true);
+    setError(null);
+
+    try {
+      if (isGuestMode) {
+        // Guest mode: Use guest chat endpoint
+        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/chats/guest`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: contextMessage,
+            disease_context: { disease, confidence }
+          })
+        });
+
+        if (!response.ok) throw new Error('Failed to get response');
+        const data = await response.json();
+
+        const newMessages = [
+          {
+            id: `user_${Date.now()}`,
+            text: contextMessage,
+            isBot: false,
+            timestamp: new Date(),
+            products: []
+          },
+          {
+            id: `bot_${Date.now()}`,
+            text: data.response,
+            isBot: true,
+            timestamp: new Date(),
+            products: []
+          }
+        ];
+
+        setMessages(newMessages);
+        localStorage.setItem(GUEST_MESSAGES_KEY, JSON.stringify(newMessages));
+
+      } else {
+        // Logged-in user: Save to backend
+        const result = await sendMessage(currentChatId, contextMessage, { disease, confidence });
+        
+        // Add both user and bot messages
+        const newMessages = [
+          {
+            id: result.user_message.id,
+            text: result.user_message.text,
+            isBot: false,
+            timestamp: new Date(result.user_message.timestamp),
+            products: []
+          },
+          {
+            id: result.bot_message.id,
+            text: result.bot_message.text,
+            isBot: true,
+            timestamp: new Date(result.bot_message.timestamp),
+            products: result.bot_message.products || []
+          }
+        ];
+        
+        setMessages(newMessages);
+      }
+    } catch (err) {
+      console.error('Chat error:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [isGuestMode, currentChatId, diseaseContext, GUEST_MESSAGES_KEY]);
 
   // Check for disease context from upload page
   useEffect(() => {
-    if (!currentChatId || !user || hasCheckedContext) return;
+    if (!currentChatId || hasCheckedContext) return;
     
     const contextData = sessionStorage.getItem('chatContext');
     if (contextData) {
@@ -67,43 +159,7 @@ export default function AIChatPage({ user, currentChatId }) {
         console.error('Failed to parse chat context:', e);
       }
     }
-  }, [currentChatId, user, hasCheckedContext, messages]);
-
-  const handleAutoSendWithDiseaseContext = async (disease, confidence) => {
-    const contextMessage = `Saya baru saja melakukan deteksi kulit dan hasilnya adalah ${disease} dengan tingkat kepercayaan ${(confidence * 100).toFixed(1)}%. Bisakah Anda memberikan informasi lebih lanjut tentang kondisi ini dan rekomendasi perawatan yang tepat?`;
-    
-    setLoading(true);
-    setError(null);
-
-    try {
-      const result = await sendMessage(currentChatId, contextMessage, { disease, confidence });
-      
-      // Add both user and bot messages
-      const newMessages = [
-        {
-          id: result.user_message.id,
-          text: result.user_message.text,
-          isBot: false,
-          timestamp: new Date(result.user_message.timestamp),
-          products: []
-        },
-        {
-          id: result.bot_message.id,
-          text: result.bot_message.text,
-          isBot: true,
-          timestamp: new Date(result.bot_message.timestamp),
-          products: result.bot_message.products || []
-        }
-      ];
-      
-      setMessages(newMessages);
-    } catch (err) {
-      console.error('Chat error:', err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [currentChatId, hasCheckedContext, messages, handleAutoSendWithDiseaseContext]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -133,45 +189,90 @@ export default function AIChatPage({ user, currentChatId }) {
     setMessages(prev => [...prev, tempUserMessage]);
 
     try {
-      // Send disease context if banner is present
-      const diseaseInfo = diseaseContext ? {
-        disease: diseaseContext.disease,
-        confidence: diseaseContext.confidence
-      } : null;
-      
-      const result = await sendMessage(currentChatId, messageText, diseaseInfo);
-      
-      // Handle different response formats from backend
-      if (!result) {
-        throw new Error('No response from server');
-      }
-      
-      // Check if response has the expected structure
-      if (!result.user_message || !result.bot_message) {
-        throw new Error('Invalid response format from server');
-      }
-      
-      // Replace temp message with actual messages from backend
-      setMessages(prev => {
-        const withoutTemp = prev.filter(m => m.id !== tempUserMessage.id);
-        return [
-          ...withoutTemp,
-          {
-            id: result.user_message.id,
-            text: result.user_message.text,
-            isBot: false,
-            timestamp: new Date(result.user_message.timestamp),
-            products: []
-          },
-          {
-            id: result.bot_message.id,
-            text: result.bot_message.text,
-            isBot: true,
-            timestamp: new Date(result.bot_message.timestamp),
-            products: result.bot_message.products || []
-          }
+      if (isGuestMode) {
+        // Guest mode: Use guest chat endpoint
+        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/chats/guest`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: messageText,
+            disease_context: diseaseContext ? {
+              disease: diseaseContext.disease,
+              confidence: diseaseContext.confidence
+            } : null
+          })
+        });
+
+        if (!response.ok) throw new Error('Failed to get response');
+        const data = await response.json();
+
+        // Create messages for guest mode
+        const userMsg = {
+          id: `user_${Date.now()}`,
+          text: messageText,
+          isBot: false,
+          timestamp: new Date(),
+          products: []
+        };
+
+        const botMsg = {
+          id: `bot_${Date.now()}`,
+          text: data.response,
+          isBot: true,
+          timestamp: new Date(),
+          products: []
+        };
+
+        // Update messages and save to localStorage
+        const updatedMessages = [
+          ...messages.filter(m => m.id !== tempUserMessage.id),
+          userMsg,
+          botMsg
         ];
-      });
+        setMessages(updatedMessages);
+        localStorage.setItem(GUEST_MESSAGES_KEY, JSON.stringify(updatedMessages));
+
+      } else {
+        // Logged-in user: Send to backend with persistence
+        const diseaseInfo = diseaseContext ? {
+          disease: diseaseContext.disease,
+          confidence: diseaseContext.confidence
+        } : null;
+        
+        const result = await sendMessage(currentChatId, messageText, diseaseInfo);
+        
+        // Handle different response formats from backend
+        if (!result) {
+          throw new Error('No response from server');
+        }
+        
+        // Check if response has the expected structure
+        if (!result.user_message || !result.bot_message) {
+          throw new Error('Invalid response format from server');
+        }
+        
+        // Replace temp message with actual messages from backend
+        setMessages(prev => {
+          const withoutTemp = prev.filter(m => m.id !== tempUserMessage.id);
+          return [
+            ...withoutTemp,
+            {
+              id: result.user_message.id,
+              text: result.user_message.text,
+              isBot: false,
+              timestamp: new Date(result.user_message.timestamp),
+              products: []
+            },
+            {
+              id: result.bot_message.id,
+              text: result.bot_message.text,
+              isBot: true,
+              timestamp: new Date(result.bot_message.timestamp),
+              products: result.bot_message.products || []
+            }
+          ];
+        });
+      }
     } catch (err) {
       console.error('Chat error:', err);
       setError(err.message);
@@ -187,12 +288,19 @@ export default function AIChatPage({ user, currentChatId }) {
     setDiseaseContext(null);
   };
 
+  const handleClearChat = () => {
+    if (isGuestMode) {
+      setMessages([]);
+      localStorage.removeItem(GUEST_MESSAGES_KEY);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
         {/* Chat Header */}
-        <div className="bg-white/80 backdrop-blur-sm border-b border-slate-200/50 p-3 sm:p-5 flex items-center gap-3 sm:gap-4 shadow-sm pl-14 sm:pl-16 lg:pl-3">
+        <div className="bg-white/80 backdrop-blur-sm border-b border-slate-200/50 p-3 sm:p-5 flex items-center justify-between gap-3 sm:gap-4 shadow-sm pl-14 sm:pl-16 lg:pl-3">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-2 sm:p-3 rounded-xl shadow-lg">
               <Bot size={20} className="text-white sm:w-6 sm:h-6" />
@@ -205,6 +313,16 @@ export default function AIChatPage({ user, currentChatId }) {
               </div>
             </div>
           </div>
+          {/* Clear Chat Button for Guests */}
+          {isGuestMode && messages.length > 0 && (
+            <button
+              onClick={handleClearChat}
+              className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors border border-red-200"
+            >
+              <Trash2 size={14} />
+              <span className="hidden sm:inline">Hapus Chat</span>
+            </button>
+          )}
         </div>
 
         {/* Messages Area */}

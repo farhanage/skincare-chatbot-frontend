@@ -151,16 +151,33 @@ export default function Sidebar({ user, onLogout, isOpen, onToggle, onNewChat, o
         {/* Chat History - Only show on AI Chat page */}
         {currentPage === 'ai-chat' && isOpen && (
           <div className="flex-1 flex flex-col overflow-hidden border-t border-slate-200/50 bg-slate-50/30">
-            {/* New Chat Button */}
-            <div className="p-3">
-              <button
-                onClick={onNewChat}
-                className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-3.5 rounded-xl font-bold hover:from-emerald-600 hover:to-teal-700 transition-all duration-200 shadow-lg shadow-emerald-200 hover:shadow-xl hover:shadow-emerald-300 hover:scale-[1.02] flex items-center justify-center gap-2"
-              >
-                <Plus size={20} strokeWidth={2.5} />
-                <span className="tracking-wide">Chat Baru</span>
-              </button>
-            </div>
+            {/* Guest Mode Notice */}
+            {!user && (
+              <div className="p-3 mx-3 mt-3 bg-amber-50 border border-amber-200 rounded-xl">
+                <div className="flex items-start gap-2">
+                  <AlertCircle size={16} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-xs text-amber-800">
+                    <p className="font-semibold mb-1">Mode Guest</p>
+                    <p className="text-amber-700 leading-relaxed">
+                      Chat tidak disimpan. Login untuk menyimpan riwayat chat.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* New Chat Button - Only for logged-in users */}
+            {user && (
+              <div className="p-3">
+                <button
+                  onClick={onNewChat}
+                  className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-3.5 rounded-xl font-bold hover:from-emerald-600 hover:to-teal-700 transition-all duration-200 shadow-lg shadow-emerald-200 hover:shadow-xl hover:shadow-emerald-300 hover:scale-[1.02] flex items-center justify-center gap-2"
+                >
+                  <Plus size={20} strokeWidth={2.5} />
+                  <span className="tracking-wide">Chat Baru</span>
+                </button>
+              </div>
+            )}
 
             {/* Chat Sessions List */}
             <div className="flex-1 overflow-y-auto px-3 pb-4">
@@ -243,7 +260,7 @@ export default function Sidebar({ user, onLogout, isOpen, onToggle, onNewChat, o
                           )}
                         </div>
                       </div>
-                      {editingChatId !== session.id && (
+                      {editingChatId !== session.id && !session.isGuest && (
                         <div className="absolute top-2.5 right-2 flex gap-1 opacity-0 group-hover:opacity-100 z-10">
                           <button
                             type="button"
