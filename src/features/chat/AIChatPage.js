@@ -365,7 +365,7 @@ export default function AIChatPage({ user, currentChatId }) {
                 </div>
                 <div className={`${msg.isBot ? 'bg-white border border-slate-200 shadow-lg hover:shadow-xl' : 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-200 hover:shadow-xl'} p-3 sm:p-4 rounded-2xl transition-all duration-200`}>
                   <p className={`text-xs sm:text-sm ${msg.isBot ? 'text-slate-900' : 'text-white'} whitespace-pre-wrap leading-relaxed`}>
-                    {msg.text.split('**').map((part, i) => 
+                    {(typeof msg.text === 'string' ? msg.text : String(msg.text || '')).split('**').map((part, i) => 
                       i % 2 === 0 ? part : <strong key={i} className="font-black">{part}</strong>
                     )}
                   </p>
