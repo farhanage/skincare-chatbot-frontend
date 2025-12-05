@@ -1,188 +1,188 @@
 # Skincare Chatbot Frontend
 
-A React-based web application for skin disease detection and AI-powered skincare product recommendations.
+![Home Page](screenshots/home.png)
+
+An AI-powered web application that analyzes skin conditions through image uploads and provides personalized skincare product recommendations via an intelligent chatbot. Visit [skincare.farhanage.site](https://skincare.farhanage.site) to see the app in action!
+
+## How It Works
+
+1. **Upload Photo** - Take or upload a photo of your skin condition
+2. **AI Analysis** - Our AI identifies potential skin issues
+3. **Get Recommendations** - Chat with AI for personalized product suggestions
+4. **Shop** - Browse and purchase recommended products
+5. **Track Orders** - View your order history and status
 
 ## Features
 
-- 🔐 User Authentication (Login/Register)
-- 📸 Skin Disease Detection via Image Upload
-- 💬 AI Chat for Personalized Product Recommendations
-- 🛒 E-commerce with Shopping Cart
-- 📦 Order Management and History
-- 👨‍💼 Admin Dashboard
-- 💾 Persistent State Management with LocalStorage
+### User Authentication
+- Secure login and registration system
+- Guest mode for trying features without an account
+- Role-based access (Admin/User)
 
-## Tech Stack
+### AI Skin Analysis
+- Upload photos via drag-and-drop or click
+- Instant AI-powered skin condition detection
+- Confidence scores for predictions
+- Results inform personalized recommendations
 
-- **React** 19.1.1
-- **React Router DOM** 7.9.1
-- **Tailwind CSS** 3.4.0
-- **Axios** 1.12.2
-- **Lucide React** (Icons)
-- **Highcharts** (Admin Dashboard)
+### Smart AI Chatbot
+- Get product recommendations based on your skin condition
+- Multiple chat sessions to organize conversations
+- Chat history saved for logged-in users
+- Works for guests with local storage
+
+### E-Commerce Store
+- Browse skincare products with filters (category, condition, price)
+- Search functionality
+- Shopping cart with easy checkout
+- Order history and tracking
+
+### Embeddings and Multi Armed Bandit (Thompson Sampling) based Product Recommendations
+- Personalized product recommendations: AI matches products to your product interactions to surface tailored suggestions.
+- Continuous learning with privacy: recommendations improve from interactions while only anonymized data/embeddings are stored.
+
+
+## Screenshots
+
+### Home Page - Skin Analysis
+
+![Skin Analysis](screenshots/skin.png)
+
+### AI Chat Interface
+
+![AI Chat Interface](screenshots/chat.png)
+
+### Product Catalog & Shopping
+
+![Product Catalog](screenshots/products.png)
+
+### Recommendations
+
+![Product Recommendations](screenshots/recommendations.png)
+
+## Built With
+
+- **React** 19.1.1 - UI framework
+- **React Router** 7.9.1 - Navigation
+- **Tailwind CSS** 3.4.0 - Styling
+- **Axios** 1.12.2 - API requests
+- **Lucide React** - Icons
+- **Highcharts** - Admin analytics
 
 ## Project Structure
 
 ```
 src/
-├── components/          # Organized by feature
-│   ├── Layout/         # Header, Sidebar
-│   ├── Chat/           # AI Chat components
-│   ├── Product/        # Product listing
-│   ├── Cart/           # Shopping cart
-│   ├── Order/          # Checkout, Order history
-│   ├── Auth/           # Login, Register
-│   ├── Admin/          # Admin dashboard
-│   └── Upload/         # Image upload & detection
-├── services/           # API service layer
-│   ├── authService.js
-│   ├── chatService.js
-│   ├── productService.js
-│   ├── orderService.js
-│   └── uploadService.js
-├── hooks/              # Custom React hooks
-│   ├── useAuth.js
-│   ├── useCart.js
-│   ├── useChat.js
-│   └── useLocalStorage.js
-├── utils/              # Utility functions
-│   ├── constants.js
-│   ├── formatters.js
-│   ├── validators.js
-│   └── helpers.js
-└── assets/             # Static files
+├── features/           # Main app features
+│   ├── auth/          # Login & Registration
+│   ├── chat/          # AI chatbot
+│   ├── products/      # Product catalog
+│   ├── cart/          # Shopping cart
+│   ├── orders/        # Checkout & history
+│   ├── upload/        # Skin analysis
+│   └── admin/         # Admin panel
+├── components/        # Reusable components
+├── services/          # API integration
+├── hooks/             # Custom React hooks
+├── pages/             # Page components
+└── utils/             # Helper functions
 ```
 
-## Getting Started
+## Quick Start
 
 ### Prerequisites
-
-- Node.js 14+ 
-- npm or yarn
-- Backend API running on `http://localhost:8000`
+- Node.js 14+ and npm
+- Backend API running (default: `http://localhost:8000`)
 
 ### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/farhanage/skincare-chatbot-frontend.git
+cd skincare-chatbot-frontend
+
 # Install dependencies
 npm install
 
-# Start development server
+# Create .env file
+echo "REACT_APP_API_URL=http://localhost:8000" > .env
+
+# Start the app
 npm start
 ```
 
-The app will open at `http://localhost:3000`
+### Build for Production
 
-### Environment Variables
-
-Create a `.env` file in the root directory:
-
-```env
-REACT_APP_API_URL=http://localhost:8000
+```bash
+npm run build
 ```
-
-## Available Scripts
-
-- `npm start` - Start development server
-- `npm build` - Build for production
-- `npm test` - Run tests
-- `npm run eject` - Eject from Create React App
 
 ## API Endpoints
 
-The app connects to the following backend endpoints:
-
-- `POST /api/auth/login` - User login
-- `POST /api/auth/register` - User registration
-- `POST /api/chat` - AI chat
-- `GET /api/products` - Get products
-- `POST /api/orders` - Create order
-- `GET /api/orders/{order_id}` - Get user orders
-- `POST /predict` - Skin disease prediction
-
-## Features Overview
-
 ### Authentication
-- Email/username and password login
-- User registration with validation
-- Token-based authentication
-- Role-based access (admin/user)
+- `POST /api/auth/register` - Sign up
+- `POST /api/auth/login` - Sign in
 
-### Skin Detection
-- Drag & drop or file upload
-- AI-powered disease detection
-- Confidence score display
-- Session persistence
+### Skin Analysis
+- `POST /predict` - Upload image for disease detection
 
-### AI Chat
-- Multiple chat sessions per user
-- Chat history in localStorage
-- Disease-aware recommendations
-- Session management
+### Chat
+- `POST /api/chat` - Send message
+- `GET /api/chats` - Get chat history
+- `POST /api/chats` - Create new chat
 
-### E-commerce
-- Product catalog with filters
-- Category, condition, and price filters
-- Search functionality
-- Shopping cart with quantity management
-- Checkout process
-- Order tracking
+### Products & Orders
+- `GET /api/products` - Browse products
+- `POST /api/cart` - Add to cart
+- `POST /api/orders` - Place order
+- `GET /api/orders` - Order history
 
-### Admin Panel
-- System information
-- User management
-- Product management
-- Database viewer
+### Admin
+- `GET /api/admin/debug/{endpoint}` - System info & management
 
-## Development
+## For Developers
 
-### Adding New Components
+### Adding New Features
 
-Components should be organized by feature:
-
+**Services** - Create API calls in `src/services/`:
 ```javascript
-// Good: Organized by feature
-import { Login, Register } from './components/Auth';
-import { Products } from './components/Product';
-
-// Bad: Flat structure
-import Login from './components/Login';
-import Register from './components/Register';
-```
-
-### Adding New Services
-
-Create service files in `src/services/`:
-
-```javascript
-// src/services/myService.js
 import axios from 'axios';
 import { REACT_APP_API_BASE_URL } from '../utils/constants';
 
 export const myApiCall = async (data) => {
-  const response = await axios.post(`${REACT_APP_API_BASE_URL}/endpoint`, data);
-  return response.data;
+  const token = localStorage.getItem('token');
+  return await axios.post(`${REACT_APP_API_BASE_URL}/endpoint`, data, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
 };
 ```
 
-### Using Custom Hooks
-
+**Custom Hooks** - Use built-in hooks:
 ```javascript
 import { useAuth, useCart, useChat } from '../hooks';
 
-function MyComponent() {
-  const { user, login, logout } = useAuth();
-  const { cartItems, addToCart } = useCart(user);
-  const { sessions, createNewChat } = useChat(user);
-  
-  // Component logic
-}
+const { user, login } = useAuth();
+const { cartItems, addToCart } = useCart(user);
+const { sessions, sendMessage } = useChat(user);
 ```
+
+## Security
+
+- JWT token authentication
+- Role-based access control
+- Input validation on all forms
+- Secure API communication
 
 ## License
 
-This project is part of a skincare chatbot system.
+Part of a comprehensive skincare recommendation system.
 
-## Support
+## Contributing
 
-For issues and questions, please contact the development team.
+Contributions welcome! Please open an issue or submit a pull request.
+
+Frontend Repository: [github.com/farhanage/skincare-chatbot-frontend](https://github.com/farhanage/skincare-chatbot-frontend)
+
+Backend Repository: [github.com/farhanage/skincare-chatbot-backend](https://github.com/farhanage/skincare-chatbot-backend)
+
+---

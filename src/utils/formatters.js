@@ -46,9 +46,21 @@ export const formatDateTime = (date) => {
  * @returns {string} Relative time string
  */
 export const formatRelativeTime = (dateStr, short = true) => {
+  if (!dateStr) return '-';
+
   const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return '-';
+
   const now = new Date();
   const diffMs = now - date;
+
+  // If date is in the future, fall back to a readable date
+  if (diffMs < 0) {
+    return short
+      ? date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
+      : date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
   const diffMins = Math.floor(diffMs / 60000);
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
