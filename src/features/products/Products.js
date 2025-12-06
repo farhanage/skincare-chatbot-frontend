@@ -30,6 +30,8 @@ const Products = ({ user }) => {
   
   // Filters
   const [showFilters, setShowFilters] = useState(false);
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [selectedSort, setSelectedSort] = useState('default');
   const [selectedCategory, setSelectedCategory] = useState('Semua');
   const [selectedCondition, setSelectedCondition] = useState('Semua');
   const [priceRange, setPriceRange] = useState('Semua');
@@ -50,14 +52,13 @@ const Products = ({ user }) => {
 
   useEffect(() => {
     applyFilters();
-  }, [products, selectedCategory, selectedCondition, priceRange, searchQuery]);
+  }, [products, selectedCategory, selectedCondition, priceRange, searchQuery, selectedSort]);
 
   const fetchProducts = async () => {
     try {
       const data = await getProducts();
       if (data.success) {
         setProducts(data.products);
-        setFilteredProducts(data.products);
       }
     } catch (err) {
       console.error('Failed to fetch products:', err);
@@ -101,6 +102,8 @@ const Products = ({ user }) => {
     }
   };
 
+  
+
   const applyFilters = () => {
     let filtered = [...products];
 
@@ -134,8 +137,38 @@ const Products = ({ user }) => {
       );
     }
 
-    setFilteredProducts(filtered);
+    // Apply sorting after filters
+    const sorted = applySort(filtered, selectedSort);
+    setFilteredProducts(sorted);
     setCurrentPage(1);
+  };
+
+  const applySort = (items = [], sortKey = 'default') => {
+    // Create a copy to avoid mutating state directly
+    const arr = [...items];
+    switch (sortKey) {
+      case 'newest':
+        // newest - assume created_at field or fallback to id
+        return arr.sort((a, b) => {
+          const ta = a.created_at ? new Date(a.created_at).getTime() : (a.id || 0);
+          const tb = b.created_at ? new Date(b.created_at).getTime() : (b.id || 0);
+          return tb - ta;
+        });
+      case 'price-asc':
+        return arr.sort((a, b) => (parseFloat(a.price || 0) - parseFloat(b.price || 0)));
+      case 'price-desc':
+        return arr.sort((a, b) => (parseFloat(b.price || 0) - parseFloat(a.price || 0)));
+      case 'name-asc':
+        return arr.sort((a, b) => (String(a.name || '').localeCompare(String(b.name || ''))));
+      case 'popularity':
+        return arr.sort((a, b) => {
+          const sa = a.sold_count || a.sold || a.sales || 0;
+          const sb = b.sold_count || b.sold || b.sales || 0;
+          return sb - sa;
+        });
+      default:
+        return arr; // default order from API
+    }
   };
 
   const resetFilters = () => {
@@ -143,6 +176,7 @@ const Products = ({ user }) => {
     setSelectedCondition('Semua');
     setPriceRange('Semua');
     setSearchQuery('');
+    setSelectedSort('default');
   };
 
   // Get unique categories and conditions
@@ -155,6 +189,15 @@ const Products = ({ user }) => {
     '100000-200000',
     '200000-300000',
     '300000-500000'
+  ];
+
+  const sortOptions = [
+    { id: 'default', label: 'Default' },
+    { id: 'newest', label: 'Terbaru' },
+    { id: 'price-asc', label: 'Harga: Rendah → Tinggi' },
+    { id: 'price-desc', label: 'Harga: Tinggi → Rendah' },
+    { id: 'name-asc', label: 'Nama: A → Z' },
+    { id: 'popularity', label: 'Terlaris' }
   ];
 
   // Pagination
@@ -421,6 +464,34 @@ const Products = ({ user }) => {
               <span className="bg-emerald-500 rounded-full w-2 h-2"></span>
             )}
           </button>
+          {/* Sort Button */}
+          <div className="relative">
+            <button
+              onClick={() => {
+                setShowSortDropdown(!showSortDropdown);
+              }}
+              className={`flex items-center gap-2 px-4 py-3 rounded-xl font-bold transition-all ${selectedSort !== 'default' ? 'bg-emerald-50 border-2 border-emerald-200 text-emerald-700' : 'bg-white border-2 border-slate-200 text-slate-700 hover:border-emerald-500 hover:text-emerald-600'}`}
+            >
+              Sort by: {sortOptions.find(s => s.id === selectedSort)?.label || 'Default'}
+              <ChevronRight size={18} className={`transition-transform ${showSortDropdown ? 'rotate-90' : ''}`} />
+            </button>
+            {showSortDropdown && (
+              <div className="absolute z-50 w-56 mt-2 bg-white rounded-xl shadow-2xl border-2 border-emerald-200 overflow-hidden">
+                {sortOptions.map((opt) => (
+                  <button
+                    key={opt.id}
+                    onClick={() => {
+                      setSelectedSort(opt.id);
+                      setShowSortDropdown(false);
+                    }}
+                    className={`w-full text-left px-4 py-3 font-medium text-sm transition-all ${selectedSort === opt.id ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white' : 'hover:bg-emerald-50 text-slate-700'}`}
+                  >
+                    {selectedSort === opt.id ? '✓ ' : ''}{opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Filter Panel */}
