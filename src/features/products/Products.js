@@ -501,6 +501,24 @@ const Products = ({ user }) => {
                     <h3 className="text-lg font-bold text-slate-900 mb-3 group-hover:text-emerald-600 transition-colors line-clamp-2 min-h-[3.5rem]">
                       {product.name}
                     </h3>
+
+                    {/* Product Image */}
+                    <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl mb-4 flex items-center justify-center h-48 overflow-hidden">
+                      {product.image_url ? (
+                        <img 
+                          src={product.image_url} 
+                          alt={product.name}
+                          className="w-full h-full object-contain p-4"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
+                      <div className={`${product.image_url ? 'hidden' : 'flex'} items-center justify-center w-full h-full`}>
+                        <span className="text-4xl font-bold text-emerald-300">{product.brand?.charAt(0) || '?'}</span>
+                      </div>
+                    </div>
                     
                     {/* Description */}
                     <p className="text-slate-600 text-sm mb-4 line-clamp-3 flex-grow">

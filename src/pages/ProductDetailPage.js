@@ -238,9 +238,20 @@ export default function ProductDetailPage({ user, onLogout }) {
               {/* Product Image */}
               <div className="flex items-center justify-center bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-8">
                 <div className="relative w-full max-w-md aspect-square flex items-center justify-center">
-                  <Package size={120} className="text-emerald-200" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-4xl font-bold text-emerald-600">{product.brand?.charAt(0)}</span>
+                  {product.image_url ? (
+                    <img 
+                      src={product.image_url} 
+                      alt={product.name}
+                      className="w-full h-full object-contain rounded-lg"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <div className={`${product.image_url ? 'hidden' : 'flex'} flex-col items-center justify-center`}>
+                    <Package size={120} className="text-emerald-200" />
+                    <span className="text-4xl font-bold text-emerald-600 mt-4">{product.brand?.charAt(0)}</span>
                   </div>
                 </div>
               </div>
@@ -372,9 +383,22 @@ export default function ProductDetailPage({ user, onLogout }) {
                       className="w-64 bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer group border border-slate-200 hover:border-emerald-300"
                     >
                       <div className="p-4">
-                        {/* Product Image Placeholder */}
-                        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-lg p-6 mb-3 flex items-center justify-center h-40">
-                          <Package size={48} className="text-emerald-300" />
+                        {/* Product Image */}
+                        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-lg mb-3 flex items-center justify-center h-40 overflow-hidden">
+                          {product.image_url ? (
+                            <img 
+                              src={product.image_url} 
+                              alt={product.name}
+                              className="w-full h-full object-contain"
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                e.target.nextSibling.style.display = 'flex';
+                              }}
+                            />
+                          ) : null}
+                          <div className={`${product.image_url ? 'hidden' : 'flex'} items-center justify-center w-full h-full`}>
+                            <Package size={48} className="text-emerald-300" />
+                          </div>
                         </div>
                         
                         {/* Category */}
@@ -432,9 +456,22 @@ export default function ProductDetailPage({ user, onLogout }) {
                       className="w-64 bg-gradient-to-br from-white to-emerald-50/30 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer group border-2 border-emerald-200 hover:border-emerald-400"
                     >
                       <div className="p-4">
-                        {/* Product Image Placeholder */}
-                        <div className="bg-gradient-to-br from-emerald-100 to-teal-100 rounded-lg p-6 mb-3 flex items-center justify-center h-40">
-                          <Package size={48} className="text-emerald-400" />
+                        {/* Product Image */}
+                        <div className="bg-gradient-to-br from-emerald-100 to-teal-100 rounded-lg mb-3 flex items-center justify-center h-40 overflow-hidden">
+                          {product.image_url ? (
+                            <img 
+                              src={product.image_url} 
+                              alt={product.name}
+                              className="w-full h-full object-contain"
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                e.target.nextSibling.style.display = 'flex';
+                              }}
+                            />
+                          ) : null}
+                          <div className={`${product.image_url ? 'hidden' : 'flex'} items-center justify-center w-full h-full`}>
+                            <Package size={48} className="text-emerald-400" />
+                          </div>
                         </div>
                         
                         {/* Category*/}
