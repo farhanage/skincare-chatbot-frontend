@@ -1,12 +1,12 @@
 // src/components/Products.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Filter, ChevronLeft, ChevronRight, X, Search, ShoppingCart, History } from 'lucide-react';
+import { Filter, ChevronLeft, ChevronRight, X, Search, ShoppingCart, History, Sparkles } from 'lucide-react';
 import Cart from '../cart/Cart';
 import Checkout from '../orders/Checkout';
 import OrderHistory from '../orders/OrderHistory';
 import './Products.css';
-import { getProducts } from '../../services/productService';
+import { getProducts, getBanditRecommendations } from '../../services/productService';
 import { trackInteraction } from '../../services/interactionService';
 import { formatCurrency } from '../../utils/formatters';
 
@@ -14,8 +14,10 @@ const Products = ({ user }) => {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
+  const [recommendedProducts, setRecommendedProducts] = useState([]);
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
   const [showCart, setShowCart] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [showOrderHistory, setShowOrderHistory] = useState(false);
@@ -42,6 +44,7 @@ const Products = ({ user }) => {
     fetchProducts();
     if (user) {
       fetchCart();
+      fetchRecommendations();
     }
   }, [user]);
 
@@ -60,6 +63,23 @@ const Products = ({ user }) => {
       console.error('Failed to fetch products:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchRecommendations = async () => {
+    if (!user) return;
+    
+    setLoadingRecommendations(true);
+    try {
+      const data = await getBanditRecommendations({ n_recommendations: 6 });
+      if (data.success) {
+        const recommendations = data.recommendations || data.products || [];
+        setRecommendedProducts(recommendations);
+      }
+    } catch (err) {
+      console.error('Failed to fetch recommendations:', err);
+    } finally {
+      setLoadingRecommendations(false);
     }
   };
 
@@ -300,6 +320,81 @@ const Products = ({ user }) => {
             </div>
           )}
         </div>
+
+        {/* Recommended Products Section - Only for logged-in users */}
+        {user && recommendedProducts.length > 0 && (
+          <div className="mb-8 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-6 border-2 border-emerald-200">
+            <div className="flex items-center gap-3 mb-4">
+              <Sparkles className="text-emerald-600" size={28} />
+              <div>
+                <h2 className="text-2xl font-black text-slate-900">Rekomendasi Untuk Anda</h2>
+                <p className="text-slate-600 font-medium">Produk pilihan berdasarkan preferensi Anda</p>
+              </div>
+            </div>
+            
+            {loadingRecommendations ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+                <p className="ml-3 text-slate-600 font-medium">Memuat rekomendasi...</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto pb-2 -mx-2 px-2">
+                <div className="flex gap-4 min-w-max">
+                  {recommendedProducts.map((product) => (
+                    <div
+                      key={product.id}
+                      onClick={() => handleProductClick(product.id)}
+                      className="w-64 bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer group border-2 border-emerald-200 hover:border-emerald-400"
+                    >
+                      <div className="p-4">
+                        {/* Category Badge */}
+                        <div className="mb-2">
+                          <span className="inline-block text-xs font-bold text-emerald-600 bg-emerald-100 px-3 py-1 rounded-full uppercase tracking-wide">
+                            {product.category}
+                          </span>
+                        </div>
+                        
+                        {/* Product Name */}
+                        <h3 className="font-bold text-slate-900 mb-3 line-clamp-2 group-hover:text-emerald-600 transition-colors min-h-[3rem]">
+                          {product.name}
+                        </h3>
+
+                        {/* Product Image */}
+                        <div className="bg-gradient-to-br from-emerald-100 to-teal-100 rounded-lg mb-3 flex items-center justify-center h-40 overflow-hidden">
+                          {product.image_url ? (
+                            <img 
+                              src={product.image_url} 
+                              alt={product.name}
+                              className="w-full h-full object-contain p-3"
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                e.target.nextSibling.style.display = 'flex';
+                              }}
+                            />
+                          ) : null}
+                          <div className={`${product.image_url ? 'hidden' : 'flex'} items-center justify-center w-full h-full`}>
+                            <span className="text-3xl font-bold text-emerald-400">{product.brand?.charAt(0) || '?'}</span>
+                          </div>
+                        </div>
+                        
+                        {/* Brand */}
+                        <p className="text-sm text-slate-600 mb-2 font-medium">{product.brand}</p>
+                        
+                        {/* Price */}
+                        <div className="flex items-center justify-between mt-3 pt-3 border-t border-emerald-100">
+                          <p className="text-lg font-black text-emerald-600">
+                            {formatCurrency(product.price)}
+                          </p>
+                          <ChevronRight className="text-emerald-600 group-hover:translate-x-1 transition-transform" size={20} />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Search and Filter Bar */}
         <div className="flex flex-col sm:flex-row gap-4">
