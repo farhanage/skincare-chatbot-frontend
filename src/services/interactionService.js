@@ -28,7 +28,6 @@ export const trackInteraction = async (productId, action, reward = null) => {
 
   // Skip if this exact interaction was tracked recently (within debounce time)
   if (lastTracked && (now - lastTracked) < DEBOUNCE_TIME) {
-    console.log('Skipping duplicate interaction:', interactionKey);
     return null;
   }
 

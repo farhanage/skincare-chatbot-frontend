@@ -117,20 +117,16 @@ export default function ProductDetailPage({ user, onLogout }) {
     try {
       // Fetch similar products (You May Also Like)
       const similarData = await getProductRecommendations(id, 5);
-      console.log('Similar products response:', similarData);
       if (similarData.success) {
         const recommendations = similarData.recommendations || similarData.products || [];
-        console.log('Setting similar products:', recommendations);
         setSimilarProducts(recommendations);
       }
 
       // Fetch personalized recommendations (only for logged-in users)
       if (user) {
         const banditData = await getBanditRecommendations();
-        console.log('Bandit recommendations response:', banditData);
         if (banditData.success) {
           const recommendations = banditData.recommendations || banditData.products || [];
-          console.log('Setting personalized products:', recommendations);
           setPersonalizedProducts(recommendations);
         }
       }
