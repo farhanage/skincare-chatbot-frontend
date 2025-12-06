@@ -66,9 +66,13 @@ export const getProductRecommendations = async (productId, topK = 5) => {
 
 /**
  * Get personalized bandit recommendations for user
+ * @param {object} options - Recommendation options
+ * @param {number} options.n_recommendations - Number of recommendations (default: 5)
+ * @param {string} options.category - Product category filter (optional)
+ * @param {Array<number>} options.exclude_product_ids - Product IDs to exclude (optional)
  * @returns {Promise} List of recommended products
  */
-export const getBanditRecommendations = async () => {
+export const getBanditRecommendations = async (options = {}) => {
   const token = localStorage.getItem('token');
   
   if (!token) {
@@ -76,13 +80,32 @@ export const getBanditRecommendations = async () => {
     return { success: true, recommendations: [] };
   }
   
-  const response = await fetch(`${REACT_APP_API_BASE_URL}/bandit/recommend`, {
-    method: 'POST',
+  // Build query parameters
+  const params = new URLSearchParams();
+  
+  if (options.n_recommendations) {
+    params.append('n_recommendations', options.n_recommendations);
+  }
+  
+  if (options.category) {
+    params.append('category', options.category);
+  }
+  
+  if (options.exclude_product_ids && Array.isArray(options.exclude_product_ids)) {
+    options.exclude_product_ids.forEach(id => {
+      params.append('exclude_product_ids', id);
+    });
+  }
+  
+  const queryString = params.toString();
+  const url = `${REACT_APP_API_BASE_URL}/bandit/recommend${queryString ? `?${queryString}` : ''}`;
+  
+  const response = await fetch(url, {
+    method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({})
+    }
   });
   
   const data = await response.json();
