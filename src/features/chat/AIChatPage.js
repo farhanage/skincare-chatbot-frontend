@@ -395,7 +395,7 @@ export default function AIChatPage({ user, currentChatId }) {
                       <p className="text-xs sm:text-sm font-black text-slate-800 mb-2">💚 Produk yang direkomendasikan:</p>
                       {msg.products.map((product, idx) => (
                         <div 
-                          key={idx} 
+                          key={product.id || idx} 
                           onClick={() => handleProductClick(product.id)}
                           className="bg-gradient-to-br from-slate-50 to-emerald-50/30 p-2 sm:p-3 rounded-xl border border-emerald-200 hover:shadow-md hover:border-emerald-300 transition-all duration-200 cursor-pointer group"
                         >
