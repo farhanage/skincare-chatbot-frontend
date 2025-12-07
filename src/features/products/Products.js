@@ -1,7 +1,7 @@
 // src/components/Products.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Filter, ChevronLeft, ChevronRight, X, Search, ShoppingCart, History, Sparkles } from 'lucide-react';
+import { Filter, ChevronLeft, ChevronRight, X, Search, ShoppingCart, History, Sparkles, ShoppingBag } from 'lucide-react';
 import Cart from '../cart/Cart';
 import Checkout from '../orders/Checkout';
 import OrderHistory from '../orders/OrderHistory';
@@ -18,6 +18,7 @@ const Products = ({ user }) => {
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
+  const [expandedDescriptions, setExpandedDescriptions] = useState({});
   const [showCart, setShowCart] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [showOrderHistory, setShowOrderHistory] = useState(false);
@@ -687,9 +688,25 @@ const Products = ({ user }) => {
                     </div>
                     
                     {/* Description */}
-                    <p className="text-slate-600 text-sm mb-4 line-clamp-3 flex-grow">
-                      {product.description}
-                    </p>
+                    <div className="mb-4 flex-grow">
+                      <p className={`text-slate-600 text-sm ${expandedDescriptions[product.id] ? '' : 'line-clamp-3'}`}>
+                        {product.description}
+                      </p>
+                      {product.description && product.description.split(' ').length > 25 && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setExpandedDescriptions(prev => ({
+                              ...prev,
+                              [product.id]: !prev[product.id]
+                            }));
+                          }}
+                          className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 mt-2"
+                        >
+                          {expandedDescriptions[product.id] ? 'Tampilkan Lebih Sedikit' : 'Tampilkan Lebih'}
+                        </button>
+                      )}
+                    </div>
                     
                     {/* Conditions Tags */}
                     <div className="flex flex-wrap gap-2 mb-4">
@@ -729,8 +746,21 @@ const Products = ({ user }) => {
                           }}
                           className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-3 py-3 rounded-xl transition-all duration-200 font-bold shadow-md hover:shadow-lg transform hover:scale-[1.02] active:scale-[0.98]"
                         >
-                          <span className="text-sm">Beli</span>
+                          <span className="text-sm items-center flex gap-1 justify-center">
+                            <ShoppingBag size={16} />
+                          </span>
                         </button>
+                        {product.product_url && (
+                          <a
+                            href={product.product_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="flex-1 bg-white border-2 border-orange-500 text-orange-600 px-3 py-3 rounded-xl transition-all duration-200 font-bold hover:bg-orange-50 flex items-center justify-center gap-1.5 transform hover:scale-[1.02] active:scale-[0.98]"
+                          >
+                            <ShoppingBag size={16} />
+                          </a>
+                        )}
                       </div>
                     </div>
                   </div>

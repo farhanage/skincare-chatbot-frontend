@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sidebar } from '../components/Layout';
 import { useLocalStorage } from '../hooks/useLocalStorage';
-import { Menu, ArrowLeft, ShoppingCart, Package, Star, Shield, Truck, Award, ChevronRight } from 'lucide-react';
+import { Menu, ArrowLeft, ShoppingCart, Package, Star, Shield, Truck, Award, ChevronRight, ShoppingBag } from 'lucide-react';
 import { getProductById, getProductRecommendations, getBanditRecommendations } from '../services/productService';
 import { trackInteraction } from '../services/interactionService';
 import { formatCurrency } from '../utils/formatters';
@@ -18,6 +18,7 @@ export default function ProductDetailPage({ user, onLogout }) {
   const [similarProducts, setSimilarProducts] = useState([]);
   const [personalizedProducts, setPersonalizedProducts] = useState([]);
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
+  const [expandedDescription, setExpandedDescription] = useState(false);
 
   useEffect(() => {
     fetchProduct();
@@ -282,7 +283,17 @@ export default function ProductDetailPage({ user, onLogout }) {
 
                 <div className="mb-6">
                   <h3 className="text-sm font-semibold text-slate-700 mb-2">Deskripsi</h3>
-                  <p className="text-sm text-slate-600 leading-relaxed">{product.description}</p>
+                  <p className={`text-sm text-slate-600 leading-relaxed ${expandedDescription ? '' : 'line-clamp-4'}`}>
+                    {product.description}
+                  </p>
+                  {product.description && product.description.split(' ').length > 40 && (
+                    <button
+                      onClick={() => setExpandedDescription(!expandedDescription)}
+                      className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 mt-2"
+                    >
+                      {expandedDescription ? 'Tampilkan Lebih Sedikit' : 'Tampilkan Lebih'}
+                    </button>
+                  )}
                 </div>
 
                 {/* For Conditions */}
@@ -340,6 +351,17 @@ export default function ProductDetailPage({ user, onLogout }) {
                   >
                     Beli Sekarang
                   </button>
+                  {product.product_url && (
+                    <a
+                      href={product.product_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 flex items-center justify-center gap-2 px-6 py-3 border-2 border-orange-500 text-orange-600 rounded-xl hover:bg-orange-50 font-semibold transition-colors"
+                    >
+                      <ShoppingBag size={20} />
+                      Shopee
+                    </a>
+                  )}
                 </div>
 
                 {/* Features */}
