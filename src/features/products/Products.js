@@ -407,7 +407,7 @@ const Products = ({ user }) => {
                         <div className="bg-gradient-to-br from-emerald-100 to-teal-100 rounded-lg mb-3 flex items-center justify-center h-40 overflow-hidden">
                           {product.image_url ? (
                             <img 
-                              src={product.image_url} 
+                              src={`${product.image_url}?v=${Date.now()}`} 
                               alt={product.name}
                               className="w-full h-full object-contain p-3"
                               onError={(e) => {
