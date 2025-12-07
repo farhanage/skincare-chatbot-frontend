@@ -234,10 +234,10 @@ export default function ProductDetailPage({ user, onLogout }) {
             Kembali ke Produk
           </button>
 
-          <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-            <div className="grid md:grid-cols-2 gap-8 p-6 sm:p-8 lg:p-10">
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl overflow-hidden">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 p-4 sm:p-6 lg:p-10">
               {/* Product Image */}
-              <div className="flex items-center justify-center bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-8">
+              <div className="flex items-center justify-center bg-gradient-to-br from-emerald-50 to-teal-50 rounded-lg sm:rounded-xl p-4 sm:p-8">
                 <div className="relative w-full max-w-md aspect-square flex items-center justify-center">
                   {product.image_url ? (
                     <img 
@@ -265,8 +265,8 @@ export default function ProductDetailPage({ user, onLogout }) {
                   </span>
                 </div>
                 
-                <h1 className="text-3xl font-bold text-slate-900 mb-2">{product.name}</h1>
-                <p className="text-lg text-emerald-600 font-semibold mb-1">{product.brand}</p>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 mb-2">{product.name}</h1>
+                <p className="text-base sm:text-lg text-emerald-600 font-semibold mb-1">{product.brand}</p>
                 
                 <div className="flex items-center gap-2 mb-4">
                   <div className="flex items-center gap-1">
@@ -277,19 +277,19 @@ export default function ProductDetailPage({ user, onLogout }) {
                   <span className="text-sm text-slate-500">1,234 terjual</span>
                 </div>
 
-                <div className="mb-6">
-                  <p className="text-4xl font-bold text-slate-900">{formatCurrency(product.price)}</p>
+                <div className="mb-4 sm:mb-6">
+                  <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900">{formatCurrency(product.price)}</p>
                 </div>
 
-                <div className="mb-6">
-                  <h3 className="text-sm font-semibold text-slate-700 mb-2">Deskripsi</h3>
-                  <p className={`text-sm text-slate-600 leading-relaxed ${expandedDescription ? '' : 'line-clamp-4'}`}>
+                <div className="mb-4 sm:mb-6">
+                  <h3 className="text-xs sm:text-sm font-semibold text-slate-700 mb-2">Deskripsi</h3>
+                  <p className={`text-xs sm:text-sm text-slate-600 leading-relaxed ${expandedDescription ? '' : 'line-clamp-4'}`}>
                     {product.description}
                   </p>
                   {product.description && product.description.split(' ').length > 40 && (
                     <button
                       onClick={() => setExpandedDescription(!expandedDescription)}
-                      className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 mt-2"
+                      className="text-xs sm:text-sm font-semibold text-emerald-600 hover:text-emerald-700 mt-2"
                     >
                       {expandedDescription ? 'Tampilkan Lebih Sedikit' : 'Tampilkan Lebih'}
                     </button>
@@ -298,11 +298,11 @@ export default function ProductDetailPage({ user, onLogout }) {
 
                 {/* For Conditions */}
                 {product.for_conditions && product.for_conditions.length > 0 && (
-                  <div className="mb-6">
-                    <h3 className="text-sm font-semibold text-slate-700 mb-2">Cocok untuk:</h3>
+                  <div className="mb-4 sm:mb-6">
+                    <h3 className="text-xs sm:text-sm font-semibold text-slate-700 mb-2 sm:mb-3">Cocok untuk:</h3>
                     <div className="flex flex-wrap gap-2">
                       {product.for_conditions.map((condition, idx) => (
-                        <span key={idx} className="px-3 py-1 bg-teal-50 text-teal-700 text-xs font-medium rounded-lg border border-teal-200">
+                        <span key={idx} className="px-2 sm:px-3 py-1 bg-teal-50 text-teal-700 text-xs font-medium rounded-lg border border-teal-200">
                           {condition}
                         </span>
                       ))}
@@ -311,12 +311,12 @@ export default function ProductDetailPage({ user, onLogout }) {
                 )}
 
                 {/* Quantity Selector */}
-                <div className="mb-6">
-                  <h3 className="text-sm font-semibold text-slate-700 mb-2">Jumlah</h3>
-                  <div className="flex items-center gap-3">
+                <div className="mb-4 sm:mb-6">
+                  <h3 className="text-xs sm:text-sm font-semibold text-slate-700 mb-2 sm:mb-3">Jumlah</h3>
+                  <div className="flex items-center gap-2 sm:gap-3">
                     <button
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="w-10 h-10 flex items-center justify-center border border-slate-300 rounded-lg hover:bg-slate-50 font-semibold"
+                      className="w-8 sm:w-10 h-8 sm:h-10 flex items-center justify-center border border-slate-300 rounded-lg hover:bg-slate-50 font-semibold text-sm sm:text-base"
                     >
                       -
                     </button>
@@ -324,12 +324,12 @@ export default function ProductDetailPage({ user, onLogout }) {
                       type="number"
                       value={quantity}
                       onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                      className="w-20 h-10 text-center border border-slate-300 rounded-lg font-semibold"
+                      className="w-12 sm:w-20 h-8 sm:h-10 text-center border border-slate-300 rounded-lg font-semibold text-sm"
                       min="1"
                     />
                     <button
                       onClick={() => setQuantity(quantity + 1)}
-                      className="w-10 h-10 flex items-center justify-center border border-slate-300 rounded-lg hover:bg-slate-50 font-semibold"
+                      className="w-8 sm:w-10 h-8 sm:h-10 flex items-center justify-center border border-slate-300 rounded-lg hover:bg-slate-50 font-semibold text-sm sm:text-base"
                     >
                       +
                     </button>
@@ -337,17 +337,18 @@ export default function ProductDetailPage({ user, onLogout }) {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex gap-3 mb-6">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-4 sm:mb-6">
                   <button
                     onClick={addToCart}
-                    className="flex-1 flex items-center justify-center gap-2 px-6 py-3 border-2 border-emerald-600 text-emerald-600 rounded-xl hover:bg-emerald-50 font-semibold transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 px-3 sm:px-6 py-2.5 sm:py-3 border-2 border-emerald-600 text-emerald-600 rounded-lg sm:rounded-xl hover:bg-emerald-50 font-semibold transition-colors text-xs sm:text-sm"
                   >
-                    <ShoppingCart size={20} />
-                    Tambah ke Keranjang
+                    <ShoppingCart size={16} className="sm:w-5 sm:h-5" />
+                    <span className="hidden sm:inline">Tambah ke Keranjang</span>
+                    <span className="sm:hidden">Keranjang</span>
                   </button>
                   <button
                     onClick={buyNow}
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl hover:from-emerald-700 hover:to-teal-700 font-semibold transition-all shadow-lg hover:shadow-xl"
+                    className="flex-1 px-3 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-lg sm:rounded-xl hover:from-emerald-700 hover:to-teal-700 font-semibold transition-all shadow-lg hover:shadow-xl text-xs sm:text-sm"
                   >
                     Beli Sekarang
                   </button>
@@ -356,27 +357,27 @@ export default function ProductDetailPage({ user, onLogout }) {
                       href={product.product_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 flex items-center justify-center gap-2 px-6 py-3 border-2 border-orange-500 text-orange-600 rounded-xl hover:bg-orange-50 font-semibold transition-colors"
+                      className="flex-1 flex items-center justify-center gap-2 px-3 sm:px-6 py-2.5 sm:py-3 border-2 border-orange-500 text-orange-600 rounded-lg sm:rounded-xl hover:bg-orange-50 font-semibold transition-colors text-xs sm:text-sm"
                     >
-                      <ShoppingBag size={20} />
-                      Shopee
+                      <ShoppingBag size={16} className="sm:w-5 sm:h-5" />
+                      <span className="hidden sm:inline">Shopee</span>
                     </a>
                   )}
                 </div>
 
                 {/* Features */}
-                <div className="grid grid-cols-3 gap-3 pt-6 border-t border-slate-200">
+                <div className="grid grid-cols-3 gap-2 sm:gap-3 pt-4 sm:pt-6 border-t border-slate-200">
                   <div className="flex flex-col items-center text-center">
-                    <Shield className="text-emerald-600 mb-2" size={24} />
-                    <p className="text-xs text-slate-600">100% Original</p>
+                    <Shield className="text-emerald-600 mb-1 sm:mb-2" size={20} />
+                    <p className="text-xs text-slate-600 leading-tight">100% Original</p>
                   </div>
                   <div className="flex flex-col items-center text-center">
-                    <Truck className="text-emerald-600 mb-2" size={24} />
-                    <p className="text-xs text-slate-600">Gratis Ongkir</p>
+                    <Truck className="text-emerald-600 mb-1 sm:mb-2" size={20} />
+                    <p className="text-xs text-slate-600 leading-tight">Gratis Ongkir</p>
                   </div>
                   <div className="flex flex-col items-center text-center">
-                    <Award className="text-emerald-600 mb-2" size={24} />
-                    <p className="text-xs text-slate-600">Bergaransi</p>
+                    <Award className="text-emerald-600 mb-1 sm:mb-2" size={20} />
+                    <p className="text-xs text-slate-600 leading-tight">Bergaransi</p>
                   </div>
                 </div>
               </div>
